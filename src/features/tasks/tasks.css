@@ -1,0 +1,578 @@
+/* Tasks Feature Stylesheet */
+
+.devflow-tasks-page {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+/* Page Header */
+.devflow-tasks-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.devflow-tasks-title-group h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.devflow-tasks-subtitle {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Primary & Secondary Action Buttons */
+.devflow-btn-primary {
+  background: #a855f7 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(168, 85, 247, 0.5) !important;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.28);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.devflow-btn-primary:hover:not(:disabled) {
+  background: #9333ea !important;
+  border-color: #9333ea !important;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.42);
+}
+
+.devflow-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.devflow-btn-secondary {
+  background: var(--bg) !important;
+  color: var(--text-h) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.devflow-btn-secondary:hover:not(:disabled) {
+  background: var(--code-bg) !important;
+  color: var(--text-h) !important;
+  border-color: color-mix(in srgb, var(--border) 60%, var(--text));
+}
+
+/* Filter Bar & Controls */
+.devflow-tasks-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.devflow-tasks-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.devflow-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.devflow-filter-pill:hover {
+  color: var(--text-h);
+  border-color: color-mix(in srgb, var(--border) 60%, var(--text));
+}
+
+.devflow-filter-pill.is-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent-border);
+  font-weight: 600;
+}
+
+.devflow-filter-count {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 15%, transparent);
+  color: inherit;
+}
+
+.devflow-filter-pill.is-active .devflow-filter-count {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.devflow-tasks-project-filter {
+  min-width: 170px;
+  max-width: 240px;
+}
+
+/* Tasks Grid */
+.devflow-tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 1024px) {
+  .devflow-tasks-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .devflow-tasks-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Task Card */
+.devflow-task-card {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.devflow-task-card:hover {
+  border-color: color-mix(in srgb, var(--border) 60%, var(--accent));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.devflow-task-card-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.devflow-task-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.devflow-task-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Status Badges */
+.devflow-task-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.devflow-task-status-badge.is-todo {
+  background: rgba(156, 163, 175, 0.14);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.devflow-task-status-badge.is-in_progress {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.devflow-task-status-badge.is-completed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+/* Priority Badges */
+.devflow-task-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.devflow-task-priority-badge.is-low {
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+  border: 1px solid rgba(100, 116, 139, 0.25);
+}
+
+.devflow-task-priority-badge.is-medium {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.devflow-task-priority-badge.is-high {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.devflow-task-priority-badge.is-critical {
+  background: rgba(225, 29, 72, 0.14);
+  color: #e11d48;
+  border: 1px solid rgba(225, 29, 72, 0.3);
+  font-weight: 700;
+}
+
+/* Project Pill */
+.devflow-task-project-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-h);
+  background: var(--code-bg);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.devflow-task-project-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.devflow-task-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.devflow-task-card-desc {
+  font-size: 13.5px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.devflow-task-card-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.devflow-task-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text);
+  flex-wrap: wrap;
+}
+
+.devflow-task-due-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4.5px;
+  font-size: 12px;
+  color: var(--text-h);
+  font-weight: 500;
+}
+
+.devflow-task-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.devflow-task-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--code-bg);
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* Modal Overlay & Card */
+.devflow-task-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+  animation: devflow-fade-in 0.15s ease-out;
+}
+
+.devflow-task-modal-card {
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+  animation: devflow-scale-up 0.18s ease-out;
+  box-sizing: border-box;
+}
+
+.devflow-task-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.devflow-task-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-task-modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.devflow-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.devflow-field-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* Inputs, Textarea, Select */
+.devflow-task-input,
+.devflow-task-textarea,
+.devflow-task-select {
+  width: 100%;
+  background: var(--code-bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-h) !important;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.devflow-task-input::placeholder,
+.devflow-task-textarea::placeholder {
+  color: var(--text) !important;
+  opacity: 0.75;
+}
+
+.devflow-task-input:focus,
+.devflow-task-textarea:focus,
+.devflow-task-select:focus {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25) !important;
+}
+
+.devflow-task-input:disabled,
+.devflow-task-textarea:disabled,
+.devflow-task-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.devflow-task-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.devflow-task-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* Empty State */
+.devflow-tasks-empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 48px 20px;
+  text-align: center;
+  background: var(--social-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.devflow-empty-icon {
+  width: 42px;
+  height: 42px;
+  color: #a855f7;
+  opacity: 0.85;
+}
+
+.devflow-empty-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-empty-desc {
+  font-size: 13.5px;
+  color: var(--text);
+  margin: 0;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+/* Alert Banners */
+.devflow-task-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.devflow-task-alert.is-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+/* Skeleton Loading State */
+.devflow-task-skeleton {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 160px;
+  animation: devflow-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.devflow-skeleton-bar {
+  height: 14px;
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.devflow-skeleton-bar.is-title {
+  width: 55%;
+  height: 18px;
+}
+
+.devflow-skeleton-bar.is-sub {
+  width: 80%;
+}
+
+.devflow-skeleton-bar.is-short {
+  width: 35%;
+}
+
+@keyframes devflow-skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes devflow-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes devflow-scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

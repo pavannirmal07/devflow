@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { SessionsPage } from "@/features/sessions";
 import { ProjectsPage } from "@/features/projects";
+import { TasksPage } from "@/features/tasks";
 import "./AppShell.css";
 
 export interface AppShellProps {
@@ -208,6 +209,8 @@ export function AppShell({
               <SessionsPage userId={userId} />
             ) : activeNav === "projects" && userId ? (
               <ProjectsPage userId={userId} />
+            ) : activeNav === "tasks" && userId ? (
+              <TasksPage userId={userId} />
             ) : (
               <div className="devflow-placeholder-card">
                 <h2>{activeItem?.label}</h2>
