@@ -1,0 +1,557 @@
+/* Projects Feature Stylesheet */
+
+.devflow-projects-page {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+/* Page Header */
+.devflow-projects-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.devflow-projects-title-group h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.devflow-projects-subtitle {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Primary & Secondary Buttons */
+.devflow-btn-primary {
+  background: #a855f7 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(168, 85, 247, 0.5) !important;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.28);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.devflow-btn-primary:hover:not(:disabled) {
+  background: #9333ea !important;
+  border-color: #9333ea !important;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.42);
+}
+
+.devflow-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.devflow-btn-secondary {
+  background: var(--bg) !important;
+  color: var(--text-h) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.devflow-btn-secondary:hover:not(:disabled) {
+  background: var(--code-bg) !important;
+  color: var(--text-h) !important;
+  border-color: color-mix(in srgb, var(--border) 60%, var(--text));
+}
+
+/* Status Filter Tabs / Bar */
+.devflow-projects-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.devflow-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.devflow-filter-pill:hover {
+  color: var(--text-h);
+  border-color: color-mix(in srgb, var(--border) 60%, var(--text));
+}
+
+.devflow-filter-pill.is-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent-border);
+  font-weight: 600;
+}
+
+.devflow-filter-count {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 15%, transparent);
+  color: inherit;
+}
+
+.devflow-filter-pill.is-active .devflow-filter-count {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* Projects Responsive Grid */
+.devflow-projects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 1024px) {
+  .devflow-projects-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .devflow-projects-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Project Card */
+.devflow-project-card {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.devflow-project-card:hover {
+  border-color: color-mix(in srgb, var(--border) 60%, var(--accent));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.devflow-project-top-strip {
+  height: 4px;
+  width: 100%;
+}
+
+.devflow-project-card-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.devflow-project-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.devflow-project-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.devflow-project-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.devflow-project-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.devflow-project-card-desc {
+  font-size: 13.5px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.devflow-project-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.devflow-project-status-badge.is-active {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.devflow-project-status-badge.is-completed {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.devflow-project-status-badge.is-archived {
+  background: rgba(156, 163, 175, 0.12);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.devflow-project-card-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.devflow-project-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.devflow-project-github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.15s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+.devflow-project-github-link:hover {
+  color: var(--text-h);
+}
+
+.devflow-project-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.devflow-project-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--code-bg);
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* Modal Overlay & Card */
+.devflow-project-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+  animation: devflow-fade-in 0.15s ease-out;
+}
+
+.devflow-project-modal-card {
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+  animation: devflow-scale-up 0.18s ease-out;
+  box-sizing: border-box;
+}
+
+.devflow-project-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.devflow-project-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-project-modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.devflow-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.devflow-field-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* Inputs, Textarea, Select */
+.devflow-project-input,
+.devflow-project-textarea,
+.devflow-project-select {
+  width: 100%;
+  background: var(--code-bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-h) !important;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.devflow-project-input::placeholder,
+.devflow-project-textarea::placeholder {
+  color: var(--text) !important;
+  opacity: 0.75;
+}
+
+.devflow-project-input:focus,
+.devflow-project-textarea:focus,
+.devflow-project-select:focus {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25) !important;
+}
+
+.devflow-project-input:disabled,
+.devflow-project-textarea:disabled,
+.devflow-project-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.devflow-project-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Color Swatches */
+.devflow-color-swatches {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.devflow-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  color: #fff;
+  padding: 0;
+}
+
+.devflow-color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.devflow-color-swatch.is-selected {
+  border-color: var(--text-h);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.devflow-project-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* Empty State */
+.devflow-projects-empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 48px 20px;
+  text-align: center;
+  background: var(--social-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.devflow-empty-icon {
+  width: 42px;
+  height: 42px;
+  color: #a855f7;
+  opacity: 0.85;
+}
+
+.devflow-empty-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-empty-desc {
+  font-size: 13.5px;
+  color: var(--text);
+  margin: 0;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+/* Alert Banners */
+.devflow-project-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.devflow-project-alert.is-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+/* Skeleton Loading State */
+.devflow-project-skeleton {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 160px;
+  animation: devflow-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.devflow-skeleton-bar {
+  height: 14px;
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.devflow-skeleton-bar.is-title {
+  width: 55%;
+  height: 18px;
+}
+
+.devflow-skeleton-bar.is-sub {
+  width: 80%;
+}
+
+.devflow-skeleton-bar.is-short {
+  width: 35%;
+}
+
+@keyframes devflow-skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes devflow-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes devflow-scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
