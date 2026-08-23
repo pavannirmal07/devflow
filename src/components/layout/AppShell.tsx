@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ComponentType, ReactNode } from "react";
 import {
   LayoutDashboard,
@@ -23,7 +23,7 @@ export interface AppShellProps {
   children?: ReactNode;
 }
 
-type NavItemId =
+export type NavItemId =
   | "dashboard"
   | "projects"
   | "tasks"
@@ -45,6 +45,13 @@ const NAV_ITEMS: NavItem[] = [
   { id: "knowledge", label: "Knowledge", icon: BookOpen },
   { id: "settings", label: "Settings", icon: Settings },
 ];
+
+function getNavFromHash(): NavItemId {
+  if (typeof window === "undefined") return "dashboard";
+  const hash = window.location.hash.replace(/^#\/?/, "").toLowerCase();
+  const matched = NAV_ITEMS.find((item) => item.id === hash);
+  return matched ? matched.id : "dashboard";
+}
 
 function getGreetingName(email?: string, name?: string): string {
   if (name && name.trim()) {
@@ -70,8 +77,27 @@ export function AppShell({
   onSignOut,
   children,
 }: AppShellProps) {
-  const [activeNav, setActiveNav] = useState<NavItemId>("dashboard");
+  const [activeNav, setActiveNav] = useState<NavItemId>(() => getNavFromHash());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setActiveNav(getNavFromHash());
+    };
+
+    window.addEventListener("hashchange", handleLocationChange);
+    window.addEventListener("popstate", handleLocationChange);
+    return () => {
+      window.removeEventListener("hashchange", handleLocationChange);
+      window.removeEventListener("popstate", handleLocationChange);
+    };
+  }, []);
+
+  const handleSelectNav = (id: NavItemId) => {
+    setActiveNav(id);
+    window.history.pushState(null, "", `#${id}`);
+    setMobileMenuOpen(false);
+  };
 
   const activeItem = NAV_ITEMS.find((item) => item.id === activeNav);
   const displayName = getGreetingName(userEmail, userName);
@@ -119,10 +145,7 @@ export function AppShell({
                     type="button"
                     variant={isActive ? "secondary" : "ghost"}
                     className={`devflow-nav-button ${isActive ? "is-active" : ""}`}
-                    onClick={() => {
-                      setActiveNav(item.id);
-                      setMobileMenuOpen(false);
-                    }}
+                    onClick={() => handleSelectNav(item.id)}
                   >
                     <Icon className="devflow-nav-icon shrink-0" />
                     <span className="devflow-nav-label">{item.label}</span>
