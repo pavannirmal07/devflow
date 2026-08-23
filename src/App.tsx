@@ -18,6 +18,7 @@ function App() {
 
   return (
     <AppShell
+      userId={session?.user?.id}
       userEmail={session?.user?.email}
       userName={profile?.display_name}
       onSignOut={() => void signOut()}

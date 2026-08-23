@@ -1,0 +1,590 @@
+/* Sessions Feature Stylesheet */
+
+.devflow-sessions-page {
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  box-sizing: border-box;
+}
+
+/* Page Header */
+.devflow-sessions-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.devflow-sessions-title-group h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.devflow-sessions-subtitle {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Primary Action Button (Purple Brand Accent) */
+.devflow-btn-primary {
+  background: #a855f7 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(168, 85, 247, 0.5) !important;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.28);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.devflow-btn-primary:hover:not(:disabled) {
+  background: #9333ea !important;
+  border-color: #9333ea !important;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.42);
+}
+
+.devflow-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Secondary Action Button (Cancel) */
+.devflow-btn-secondary {
+  background: var(--bg) !important;
+  color: var(--text-h) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.devflow-btn-secondary:hover:not(:disabled) {
+  background: var(--code-bg) !important;
+  color: var(--text-h) !important;
+  border-color: color-mix(in srgb, var(--border) 60%, var(--text));
+}
+
+/* Start CTA & New Session Form Card */
+.devflow-session-form-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: devflow-fade-in 0.2s ease-out;
+}
+
+.devflow-session-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.devflow-session-form-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-session-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.devflow-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.devflow-field-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* High Contrast Inputs and Textarea */
+.devflow-session-input,
+.devflow-session-textarea {
+  width: 100%;
+  background: var(--code-bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-h) !important;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.devflow-session-input::placeholder,
+.devflow-session-textarea::placeholder {
+  color: var(--text) !important;
+  opacity: 0.8;
+}
+
+.devflow-session-input:focus,
+.devflow-session-textarea:focus {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25) !important;
+}
+
+.devflow-session-input:disabled,
+.devflow-session-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.devflow-session-textarea {
+  min-height: 84px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.devflow-session-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* Active Session Prominent Banner */
+.devflow-active-session-card {
+  border: 1.5px solid var(--accent-border);
+  background: var(--accent-bg);
+  border-radius: 14px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.devflow-active-session-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.devflow-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.15);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  width: fit-content;
+}
+
+.devflow-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: devflow-pulse 1.8s infinite;
+}
+
+@keyframes devflow-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.devflow-active-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 6px 0 0 0;
+  line-height: 1.3;
+}
+
+.devflow-active-desc {
+  font-size: 14px;
+  color: var(--text);
+  margin: 6px 0 0 0;
+  line-height: 1.5;
+}
+
+.devflow-active-timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px solid var(--accent-border);
+}
+
+.devflow-timer-display {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.devflow-timer-digits {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-h);
+  font-variant-numeric: tabular-nums;
+}
+
+.devflow-timer-started-at {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.devflow-complete-btn {
+  background: #a855f7 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  border-radius: 8px;
+  padding: 0 18px;
+  height: 40px;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.28);
+  transition: all 0.2s ease;
+}
+
+.devflow-complete-btn:hover:not(:disabled) {
+  background: #9333ea !important;
+  border-color: #9333ea !important;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.42);
+}
+
+.devflow-complete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Session History Section */
+.devflow-session-history-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.devflow-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.devflow-history-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.devflow-count-badge {
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--code-bg);
+  color: var(--text);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.devflow-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Individual Session Card */
+.devflow-session-card {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.devflow-session-card:hover {
+  border-color: color-mix(in srgb, var(--border) 60%, #a855f7);
+  box-shadow: var(--shadow);
+}
+
+.devflow-session-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.devflow-session-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.devflow-session-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.devflow-session-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+  word-break: break-word;
+}
+
+.devflow-session-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.devflow-session-status-badge.is-completed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.devflow-session-duration-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  background: var(--code-bg);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.devflow-session-card-desc {
+  font-size: 13.5px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.devflow-session-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.devflow-session-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.devflow-session-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.devflow-session-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--code-bg);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* Empty State */
+.devflow-sessions-empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  background: var(--social-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.devflow-empty-icon {
+  width: 36px;
+  height: 36px;
+  color: #a855f7;
+  opacity: 0.85;
+}
+
+.devflow-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-empty-desc {
+  font-size: 13.5px;
+  color: var(--text);
+  margin: 0;
+  max-width: 360px;
+}
+
+/* Alert Banners */
+.devflow-session-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.devflow-session-alert.is-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.devflow-session-alert.is-warning {
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: #b45309;
+}
+
+/* Skeleton Loading State */
+.devflow-session-skeleton {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: devflow-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.devflow-skeleton-bar {
+  height: 14px;
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.devflow-skeleton-bar.is-title {
+  width: 45%;
+  height: 18px;
+}
+
+.devflow-skeleton-bar.is-sub {
+  width: 70%;
+}
+
+.devflow-skeleton-bar.is-short {
+  width: 30%;
+}
+
+@keyframes devflow-skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes devflow-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .devflow-sessions-page {
+    gap: 20px;
+  }
+
+  .devflow-active-session-card {
+    padding: 18px;
+  }
+
+  .devflow-active-timer-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .devflow-complete-btn {
+    width: 100%;
+  }
+
+  .devflow-session-card {
+    flex-direction: column;
+    padding: 14px 16px;
+  }
+
+  .devflow-session-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
