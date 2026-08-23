@@ -1,0 +1,268 @@
+.devflow-shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  text-align: left;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Backdrop for Mobile Navigation Overlay */
+.devflow-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+/* Sidebar Navigation */
+.devflow-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  transition: transform 0.25s ease-in-out;
+}
+
+.devflow-sidebar-header {
+  height: 64px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.devflow-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.devflow-logo-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+}
+
+.devflow-mobile-close {
+  display: none;
+}
+
+.devflow-nav {
+  padding: 16px 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.devflow-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.devflow-nav-button {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.devflow-nav-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.devflow-nav-button:hover:not(.is-active) {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text-h);
+}
+
+.devflow-nav-button.is-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent-border);
+  font-weight: 600;
+}
+
+/* Sidebar Footer (Account Area: Greeting & Sign Out) */
+.devflow-sidebar-footer {
+  display: flex;
+  padding: 16px 14px;
+  border-top: 1px solid var(--border);
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.devflow-sidebar-user-greeting {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.devflow-sidebar-signout-btn {
+  width: 100%;
+  height: 38px;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(239, 68, 68, 0.85);
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.devflow-sidebar-signout-btn:hover {
+  color: rgba(239, 68, 68, 0.95);
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Main Container Area */
+.devflow-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Top Header */
+.devflow-header {
+  height: 64px;
+  flex-shrink: 0;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.devflow-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.devflow-menu-toggle {
+  display: none;
+}
+
+.devflow-header-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-h);
+}
+
+/* Main Content Body */
+.devflow-main {
+  flex: 1;
+  padding: 28px 24px;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.devflow-placeholder-card {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 40px 24px;
+  text-align: center;
+  background: var(--social-bg);
+}
+
+.devflow-placeholder-card h2 {
+  font-size: 24px;
+  margin: 0 0 12px 0;
+  color: var(--text-h);
+}
+
+.devflow-placeholder-card p {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.devflow-placeholder-card code {
+  margin-left: 4px;
+  color: var(--accent);
+}
+
+/* Mobile & Tablet Responsive Rules */
+@media (max-width: 768px) {
+  .devflow-backdrop {
+    display: block;
+  }
+
+  .devflow-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow);
+  }
+
+  .devflow-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .devflow-mobile-close {
+    display: inline-flex;
+  }
+
+  .devflow-menu-toggle {
+    display: inline-flex;
+  }
+
+  .devflow-sidebar-footer {
+    padding: 16px;
+  }
+
+  .devflow-sidebar-user-greeting {
+    font-size: 14px;
+  }
+
+  .devflow-sidebar-signout-btn {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .devflow-nav-button {
+    height: 44px;
+    padding: 0 14px;
+    font-size: 15px;
+  }
+
+  .devflow-nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .devflow-header {
+    padding: 0 16px;
+  }
+
+  .devflow-main {
+    padding: 20px 16px;
+  }
+}
