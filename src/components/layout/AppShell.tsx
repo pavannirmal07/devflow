@@ -14,9 +14,11 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { SessionsPage } from "@/features/sessions";
 import "./AppShell.css";
 
 export interface AppShellProps {
+  userId?: string;
   userEmail?: string;
   userName?: string;
   onSignOut: () => void;
@@ -72,6 +74,7 @@ function getGreetingName(email?: string, name?: string): string {
 }
 
 export function AppShell({
+  userId,
   userEmail,
   userName,
   onSignOut,
@@ -199,15 +202,18 @@ export function AppShell({
 
         {/* Main Content Area */}
         <main className="devflow-main">
-          {children || (
-            <div className="devflow-placeholder-card">
-              <h2>{activeItem?.label}</h2>
-              <p>
-                This section is currently under development. Selected tab:{" "}
-                <code>{activeNav}</code>
-              </p>
-            </div>
-          )}
+          {children ||
+            (activeNav === "sessions" && userId ? (
+              <SessionsPage userId={userId} />
+            ) : (
+              <div className="devflow-placeholder-card">
+                <h2>{activeItem?.label}</h2>
+                <p>
+                  This section is currently under development. Selected tab:{" "}
+                  <code>{activeNav}</code>
+                </p>
+              </div>
+            ))}
         </main>
       </div>
     </div>
