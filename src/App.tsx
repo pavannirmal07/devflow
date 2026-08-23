@@ -1,9 +1,12 @@
 import { AuthPage } from "./features/auth/pages/AuthPage";
 import { useAuth } from "./features/auth/useAuth";
-import { supabase } from "./lib/supabase/client";
+import { signOut } from "./features/auth/auth";
+import { useProfile } from "./features/profile";
+import { AppShell } from "./components/layout/AppShell";
 
 function App() {
-  const { isAuthenticated, loading } = useAuth();
+  const { session, isAuthenticated, loading } = useAuth();
+  const { profile } = useProfile(session?.user?.id);
 
   if (loading) {
     return <p>Loading DevFlow...</p>;
@@ -14,14 +17,11 @@ function App() {
   }
 
   return (
-    <main>
-      <h1>DevFlow</h1>
-      <p>You are authenticated.</p>
-
-      <button onClick={() => supabase.auth.signOut()}>
-        Sign out
-      </button>
-    </main>
+    <AppShell
+      userEmail={session?.user?.email}
+      userName={profile?.display_name}
+      onSignOut={() => void signOut()}
+    />
   );
 }
 
