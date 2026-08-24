@@ -75,6 +75,132 @@
   border-color: color-mix(in srgb, var(--border) 60%, var(--text));
 }
 
+/* Task Completion Prompt Banner */
+.devflow-session-completion-prompt {
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.08);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow);
+  animation: devflow-fade-in 0.2s ease-out;
+}
+
+.devflow-completion-prompt-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.devflow-completion-prompt-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.devflow-completion-prompt-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.devflow-completion-prompt-desc {
+  font-size: 13.5px;
+  color: var(--text-h);
+  margin: 3px 0 0 0;
+  line-height: 1.4;
+}
+
+.devflow-completion-prompt-desc span {
+  color: inherit;
+  font-weight: 600;
+}
+
+.devflow-completion-prompt-question {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-h);
+  margin: 4px 0 0 0;
+}
+
+.devflow-completion-prompt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.devflow-session-completion-prompt .devflow-btn-secondary,
+.devflow-completion-btn-secondary {
+  background: transparent !important;
+  color: var(--text-h) !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.devflow-session-completion-prompt .devflow-btn-secondary:hover:not(:disabled),
+.devflow-completion-btn-secondary:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: var(--text-h) !important;
+  border-color: rgba(34, 197, 94, 0.55) !important;
+}
+
+.devflow-session-completion-prompt .devflow-btn-secondary:disabled,
+.devflow-completion-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  .devflow-session-completion-prompt {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.4);
+  }
+
+  .devflow-session-completion-prompt .devflow-btn-secondary,
+  .devflow-completion-btn-secondary {
+    border-color: rgba(34, 197, 94, 0.4) !important;
+  }
+
+  .devflow-session-completion-prompt .devflow-btn-secondary:hover:not(:disabled),
+  .devflow-completion-btn-secondary:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 0.2) !important;
+    border-color: rgba(34, 197, 94, 0.6) !important;
+  }
+}
+
+.dark .devflow-session-completion-prompt {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.dark .devflow-session-completion-prompt .devflow-btn-secondary,
+.dark .devflow-completion-btn-secondary {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+.dark .devflow-session-completion-prompt .devflow-btn-secondary:hover:not(:disabled),
+.dark .devflow-completion-btn-secondary:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.6) !important;
+}
+
+@media (max-width: 640px) {
+  .devflow-completion-prompt-actions {
+    width: 100%;
+  }
+  .devflow-completion-prompt-actions button {
+    flex: 1;
+  }
+}
+
 /* Start CTA & New Session Form Card */
 .devflow-session-form-card {
   border: 1px solid var(--border);

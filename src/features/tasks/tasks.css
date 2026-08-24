@@ -520,7 +520,100 @@
 .devflow-task-alert.is-warning {
   background: rgba(245, 158, 11, 0.1);
   border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #f59e0b;
+  color: #b45309;
+}
+
+.devflow-task-alert .devflow-alert-btn {
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.devflow-task-alert.is-warning .devflow-alert-btn-secondary {
+  background: rgba(245, 158, 11, 0.14) !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  color: #92400e !important;
+}
+
+.devflow-task-alert.is-warning .devflow-alert-btn-secondary:hover {
+  background: rgba(245, 158, 11, 0.25) !important;
+  border-color: rgba(245, 158, 11, 0.65) !important;
+  color: #78350f !important;
+}
+
+.devflow-task-alert.is-warning .devflow-alert-btn-dismiss {
+  background: transparent !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  color: #92400e !important;
+}
+
+.devflow-task-alert.is-warning .devflow-alert-btn-dismiss:hover {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  color: #78350f !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .devflow-task-alert.is-warning {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+  }
+
+  .devflow-task-alert.is-warning .devflow-alert-btn-secondary {
+    background: rgba(245, 158, 11, 0.18) !important;
+    border-color: rgba(245, 158, 11, 0.45) !important;
+    color: #fde68a !important;
+  }
+
+  .devflow-task-alert.is-warning .devflow-alert-btn-secondary:hover {
+    background: rgba(245, 158, 11, 0.28) !important;
+    border-color: rgba(245, 158, 11, 0.7) !important;
+    color: #ffffff !important;
+  }
+
+  .devflow-task-alert.is-warning .devflow-alert-btn-dismiss {
+    background: transparent !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+    color: #fde68a !important;
+  }
+
+  .devflow-task-alert.is-warning .devflow-alert-btn-dismiss:hover {
+    background: rgba(245, 158, 11, 0.16) !important;
+    border-color: rgba(245, 158, 11, 0.55) !important;
+    color: #ffffff !important;
+  }
+}
+
+.dark .devflow-task-alert.is-warning {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+.dark .devflow-task-alert.is-warning .devflow-alert-btn-secondary {
+  background: rgba(245, 158, 11, 0.18) !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  color: #fde68a !important;
+}
+
+.dark .devflow-task-alert.is-warning .devflow-alert-btn-secondary:hover {
+  background: rgba(245, 158, 11, 0.28) !important;
+  border-color: rgba(245, 158, 11, 0.7) !important;
+  color: #ffffff !important;
+}
+
+.dark .devflow-task-alert.is-warning .devflow-alert-btn-dismiss {
+  background: transparent !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  color: #fde68a !important;
+}
+
+.dark .devflow-task-alert.is-warning .devflow-alert-btn-dismiss:hover {
+  background: rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(245, 158, 11, 0.55) !important;
+  color: #ffffff !important;
 }
 
 /* Skeleton Loading State */
