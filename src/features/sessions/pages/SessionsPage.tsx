@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Timer, AlertCircle, RefreshCw, X, Check } from "lucide-react";
+import { Plus, Timer, AlertCircle, RefreshCw, X, Check, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useSessions } from "../useSessions";
@@ -28,6 +28,8 @@ export function SessionsPage({ userId }: SessionsPageProps) {
     loading,
     error,
     startSession,
+    pauseSession,
+    resumeSession,
     endSession,
     deleteSession,
     refreshSessions,
@@ -37,6 +39,8 @@ export function SessionsPage({ userId }: SessionsPageProps) {
   const [formTitle, setFormTitle] = useState("");
   const [formDesc, setFormDesc] = useState("");
   const [isStarting, setIsStarting] = useState(false);
+  const [isPausing, setIsPausing] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [activeWarning, setActiveWarning] = useState<string | null>(null);
@@ -47,7 +51,7 @@ export function SessionsPage({ userId }: SessionsPageProps) {
   const handleOpenCreateForm = () => {
     if (activeSession) {
       setActiveWarning(
-        "A session is already in progress. Please complete your active session before starting a new one."
+        "A session is already in progress. Please complete your current session before starting a new one."
       );
       return;
     }
@@ -85,8 +89,38 @@ export function SessionsPage({ userId }: SessionsPageProps) {
     }
   };
 
+  const handlePauseActive = async () => {
+    if (!activeSession || isPausing || isCompleting) return;
+
+    setIsPausing(true);
+    setActionError(null);
+    setActiveWarning(null);
+
+    const { error: pauseErr } = await pauseSession(activeSession.id);
+    setIsPausing(false);
+
+    if (pauseErr) {
+      setActionError(pauseErr.message);
+    }
+  };
+
+  const handleResumeActive = async () => {
+    if (!activeSession || isResuming || isCompleting) return;
+
+    setIsResuming(true);
+    setActionError(null);
+    setActiveWarning(null);
+
+    const { error: resumeErr } = await resumeSession(activeSession.id);
+    setIsResuming(false);
+
+    if (resumeErr) {
+      setActionError(resumeErr.message);
+    }
+  };
+
   const handleCompleteActive = async () => {
-    if (!activeSession || isCompleting) return;
+    if (!activeSession || isCompleting || isPausing || isResuming) return;
 
     setIsCompleting(true);
     setActionError(null);
@@ -279,15 +313,26 @@ export function SessionsPage({ userId }: SessionsPageProps) {
         </div>
       )}
 
-      {/* Prominent Active Session Card */}
+      {/* Prominent Active / Paused Session Card */}
       {activeSession && (
-        <div className="devflow-active-session-card">
+        <div
+          className={`devflow-active-session-card ${
+            activeSession.status === "paused" ? "is-paused" : ""
+          }`}
+        >
           <div className="devflow-active-session-top">
             <div>
-              <div className="devflow-active-badge">
-                <span className="devflow-pulse-dot" />
-                <span>Active Session</span>
-              </div>
+              {activeSession.status === "paused" ? (
+                <div className="devflow-active-badge is-paused">
+                  <Pause className="size-3.5" />
+                  <span>Session Paused</span>
+                </div>
+              ) : (
+                <div className="devflow-active-badge">
+                  <span className="devflow-pulse-dot" />
+                  <span>Active Session</span>
+                </div>
+              )}
               <h2 className="devflow-active-title">{activeSession.title}</h2>
               {activeSession.description && (
                 <p className="devflow-active-desc">
@@ -300,7 +345,10 @@ export function SessionsPage({ userId }: SessionsPageProps) {
           <div className="devflow-active-timer-row">
             <div className="devflow-timer-display">
               <SessionTimer
-                key={activeSession.id}
+                key={`${activeSession.id}-${activeSession.status}`}
+                status={activeSession.status}
+                accumulatedSeconds={activeSession.accumulated_seconds}
+                lastResumedAt={activeSession.last_resumed_at}
                 startedAt={activeSession.started_at}
                 className="devflow-timer-digits"
               />
@@ -309,17 +357,41 @@ export function SessionsPage({ userId }: SessionsPageProps) {
               </span>
             </div>
 
-            <Button
-              type="button"
-              className="devflow-complete-btn gap-2"
-              onClick={handleCompleteActive}
-              disabled={isCompleting}
-            >
-              <Check className="size-4" />
-              <span>
-                {isCompleting ? "Completing..." : "Complete Session"}
-              </span>
-            </Button>
+            <div className="devflow-active-actions">
+              {activeSession.status === "active" ? (
+                <Button
+                  type="button"
+                  className="devflow-pause-btn gap-1.5"
+                  onClick={handlePauseActive}
+                  disabled={isPausing || isCompleting}
+                >
+                  <Pause className="size-4" />
+                  <span>{isPausing ? "Pausing..." : "Pause"}</span>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  className="devflow-resume-btn gap-1.5"
+                  onClick={handleResumeActive}
+                  disabled={isResuming || isCompleting}
+                >
+                  <Play className="size-4 fill-current" />
+                  <span>{isResuming ? "Resuming..." : "Resume"}</span>
+                </Button>
+              )}
+
+              <Button
+                type="button"
+                className="devflow-complete-btn gap-2"
+                onClick={handleCompleteActive}
+                disabled={isCompleting || isPausing || isResuming}
+              >
+                <Check className="size-4" />
+                <span>
+                  {isCompleting ? "Completing..." : "Complete Session"}
+                </span>
+              </Button>
+            </div>
           </div>
         </div>
       )}

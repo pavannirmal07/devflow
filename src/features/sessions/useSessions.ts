@@ -3,6 +3,8 @@ import type { CreateSessionInput, DevSession } from "./types";
 import {
   getSessions,
   createSession,
+  pauseSession as pauseSessionApi,
+  resumeSession as resumeSessionApi,
   completeSession,
   deleteSession as deleteSessionApi,
 } from "./sessions";
@@ -39,7 +41,7 @@ export function useSessions(userId?: string) {
   }, [userId]);
 
   const activeSession = userId
-    ? sessions.find((s) => s.status === "active") || null
+    ? sessions.find((s) => s.status === "active" || s.status === "paused") || null
     : null;
 
   const startSession = async (
@@ -72,19 +74,51 @@ export function useSessions(userId?: string) {
     return { session: newSession, error: null };
   };
 
+  const pauseSession = async (
+    sessionId: string
+  ): Promise<{ session: DevSession | null; error: Error | null }> => {
+    const { session: paused, error: pauseError } = await pauseSessionApi(sessionId);
+
+    if (pauseError) {
+      setError(pauseError.message);
+      return { session: null, error: pauseError };
+    }
+
+    if (paused) {
+      setSessions((prev) =>
+        prev.map((s) => (s.id === sessionId ? paused : s))
+      );
+      setError(null);
+    }
+
+    return { session: paused, error: null };
+  };
+
+  const resumeSession = async (
+    sessionId: string
+  ): Promise<{ session: DevSession | null; error: Error | null }> => {
+    const { session: resumed, error: resumeError } = await resumeSessionApi(sessionId);
+
+    if (resumeError) {
+      setError(resumeError.message);
+      return { session: null, error: resumeError };
+    }
+
+    if (resumed) {
+      setSessions((prev) =>
+        prev.map((s) => (s.id === sessionId ? resumed : s))
+      );
+      setError(null);
+    }
+
+    return { session: resumed, error: null };
+  };
+
   const endSession = async (
     sessionId: string
   ): Promise<{ session: DevSession | null; error: Error | null }> => {
-    const target = sessions.find((s) => s.id === sessionId);
-    if (!target) {
-      const err = new Error("Session not found");
-      setError(err.message);
-      return { session: null, error: err };
-    }
-
     const { session: completed, error: completeError } = await completeSession(
-      sessionId,
-      target.started_at
+      sessionId
     );
 
     if (completeError) {
@@ -137,9 +171,13 @@ export function useSessions(userId?: string) {
   return {
     sessions: userId ? sessions : [],
     activeSession,
+    inProgressSession: activeSession,
+    isPaused: activeSession?.status === "paused",
     loading: userId ? loading : false,
     error: userId ? error : null,
     startSession,
+    pauseSession,
+    resumeSession,
     endSession,
     deleteSession,
     refreshSessions,

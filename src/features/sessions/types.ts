@@ -1,4 +1,4 @@
-export type SessionStatus = "active" | "completed";
+export type SessionStatus = "active" | "paused" | "completed";
 
 export interface DevSession {
   id: string;
@@ -9,6 +9,8 @@ export interface DevSession {
   started_at: string;
   ended_at: string | null;
   duration_seconds: number | null;
+  accumulated_seconds: number;
+  last_resumed_at: string | null;
   created_at: string;
   updated_at: string;
 }

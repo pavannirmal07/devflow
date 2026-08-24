@@ -202,6 +202,16 @@
   width: fit-content;
 }
 
+.devflow-active-badge.is-paused {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.devflow-active-session-card.is-paused {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
 .devflow-pulse-dot {
   width: 8px;
   height: 8px;
@@ -269,16 +279,76 @@
   color: var(--text);
 }
 
+.devflow-active-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.devflow-pause-btn {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #f59e0b !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  border-radius: 8px;
+  padding: 0 16px;
+  height: 40px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.devflow-pause-btn:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: #f59e0b !important;
+}
+
+.devflow-pause-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.devflow-resume-btn {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(22, 163, 74, 0.5) !important;
+  border-radius: 8px;
+  padding: 0 16px;
+  height: 40px;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.28);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.devflow-resume-btn:hover:not(:disabled) {
+  background: #15803d !important;
+  border-color: #15803d !important;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.42);
+}
+
+.devflow-resume-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .devflow-complete-btn {
   background: #a855f7 !important;
   color: #ffffff !important;
-  font-weight: 600;
-  border: 1px solid rgba(168, 85, 247, 0.5);
+  font-weight: 600 !important;
+  border: 1px solid rgba(168, 85, 247, 0.5) !important;
   border-radius: 8px;
   padding: 0 18px;
   height: 40px;
   box-shadow: 0 2px 8px rgba(168, 85, 247, 0.28);
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .devflow-complete-btn:hover:not(:disabled) {
@@ -574,8 +644,16 @@
     gap: 14px;
   }
 
-  .devflow-complete-btn {
+  .devflow-active-actions {
     width: 100%;
+  }
+
+  .devflow-pause-btn,
+  .devflow-resume-btn,
+  .devflow-complete-btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
   }
 
   .devflow-session-card {
