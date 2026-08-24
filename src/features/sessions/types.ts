@@ -3,6 +3,7 @@ export type SessionStatus = "active" | "paused" | "completed";
 export interface DevSession {
   id: string;
   user_id: string;
+  task_id: string | null;
   title: string;
   description: string | null;
   status: SessionStatus;
@@ -18,4 +19,5 @@ export interface DevSession {
 export interface CreateSessionInput {
   title: string;
   description?: string | null;
+  task_id?: string | null;
 }

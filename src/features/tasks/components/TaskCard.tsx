@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Circle, Activity, CheckCircle2, Calendar, Pencil, Trash2 } from "lucide-react";
+import { Circle, Activity, CheckCircle2, Calendar, Pencil, Trash2, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DevTask } from "../types";
 
@@ -7,6 +7,7 @@ export interface TaskCardProps {
   task: DevTask;
   projectName?: string | null;
   projectColor?: string | null;
+  onStartSession?: (task: DevTask) => void;
   onEdit: (task: DevTask) => void;
   onDelete: (taskId: string) => Promise<void>;
   isDeleting?: boolean;
@@ -33,6 +34,7 @@ export function TaskCard({
   task,
   projectName,
   projectColor,
+  onStartSession,
   onEdit,
   onDelete,
   isDeleting = false,
@@ -133,6 +135,18 @@ export function TaskCard({
               </div>
             ) : (
               <>
+                {onStartSession && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => onStartSession(task)}
+                    aria-label="Start Focus Session for this task"
+                    title="Start Focus Session for this task"
+                  >
+                    <Timer className="size-3.5" />
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="ghost"

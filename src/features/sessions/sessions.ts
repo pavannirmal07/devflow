@@ -7,7 +7,7 @@ export async function getSessions(
   try {
     const { data, error } = await supabase
       .from("sessions")
-      .select("id, user_id, title, description, status, started_at, ended_at, duration_seconds, accumulated_seconds, last_resumed_at, created_at, updated_at")
+      .select("id, user_id, task_id, title, description, status, started_at, ended_at, duration_seconds, accumulated_seconds, last_resumed_at, created_at, updated_at")
       .eq("user_id", userId)
       .order("started_at", { ascending: false });
 
@@ -30,7 +30,7 @@ export async function getSessionById(
   try {
     const { data, error } = await supabase
       .from("sessions")
-      .select("id, user_id, title, description, status, started_at, ended_at, duration_seconds, accumulated_seconds, last_resumed_at, created_at, updated_at")
+      .select("id, user_id, task_id, title, description, status, started_at, ended_at, duration_seconds, accumulated_seconds, last_resumed_at, created_at, updated_at")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -55,6 +55,7 @@ export async function createSession(
     const { data, error } = await supabase.rpc("start_session", {
       p_title: input.title.trim(),
       p_description: input.description?.trim() || null,
+      p_task_id: input.task_id || null,
     });
 
     if (error) {

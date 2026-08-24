@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Plus, Timer, AlertCircle, RefreshCw, X, Check, Pause, Play } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Timer, AlertCircle, RefreshCw, X, Check, Pause, Play, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useTasks } from "@/features/tasks";
 import { useSessions } from "../useSessions";
 import { SessionTimer } from "../components/SessionTimer";
 import { SessionCard } from "../components/SessionCard";
@@ -35,9 +36,17 @@ export function SessionsPage({ userId }: SessionsPageProps) {
     refreshSessions,
   } = useSessions(userId);
 
+  const { tasks } = useTasks(userId);
+  const taskMap = useMemo(() => new Map(tasks.map((task) => [task.id, task])), [tasks]);
+  const selectableTasks = useMemo(
+    () => tasks.filter((t) => t.status !== "completed"),
+    [tasks]
+  );
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formTitle, setFormTitle] = useState("");
   const [formDesc, setFormDesc] = useState("");
+  const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const [isStarting, setIsStarting] = useState(false);
   const [isPausing, setIsPausing] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
@@ -47,6 +56,9 @@ export function SessionsPage({ userId }: SessionsPageProps) {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const completedSessions = sessions.filter((s) => s.status === "completed");
+  const activeLinkedTask = activeSession?.task_id
+    ? taskMap.get(activeSession.task_id)
+    : null;
 
   const handleOpenCreateForm = () => {
     if (activeSession) {
@@ -57,6 +69,7 @@ export function SessionsPage({ userId }: SessionsPageProps) {
     }
     setActiveWarning(null);
     setActionError(null);
+    setSelectedTaskId("");
     setIsFormOpen(true);
   };
 
@@ -64,7 +77,18 @@ export function SessionsPage({ userId }: SessionsPageProps) {
     setIsFormOpen(false);
     setFormTitle("");
     setFormDesc("");
+    setSelectedTaskId("");
     setActionError(null);
+  };
+
+  const handleTaskSelect = (taskId: string) => {
+    setSelectedTaskId(taskId);
+    if (taskId) {
+      const task = taskMap.get(taskId);
+      if (task && !formTitle.trim()) {
+        setFormTitle(task.title);
+      }
+    }
   };
 
   const handleStartSession = async (e: React.FormEvent) => {
@@ -78,6 +102,7 @@ export function SessionsPage({ userId }: SessionsPageProps) {
     const { session, error: startErr } = await startSession({
       title: trimmedTitle,
       description: formDesc.trim() || undefined,
+      task_id: selectedTaskId || undefined,
     });
 
     setIsStarting(false);
@@ -246,6 +271,27 @@ export function SessionsPage({ userId }: SessionsPageProps) {
 
           <div className="devflow-session-form-fields">
             <div className="devflow-field-group">
+              <Label htmlFor="session-task" className="devflow-field-label">
+                Linked Task (optional)
+              </Label>
+              <select
+                id="session-task"
+                value={selectedTaskId}
+                onChange={(e) => handleTaskSelect(e.target.value)}
+                disabled={isStarting}
+                className="devflow-session-select"
+                aria-label="Link session to a task"
+              >
+                <option value="">No linked task (standalone session)</option>
+                {selectableTasks.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title} ({t.status === "in_progress" ? "In Progress" : "To Do"})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="devflow-field-group">
               <Label htmlFor="session-title" className="devflow-field-label">
                 Session Title <span className="text-destructive">*</span>
               </Label>
@@ -322,17 +368,30 @@ export function SessionsPage({ userId }: SessionsPageProps) {
         >
           <div className="devflow-active-session-top">
             <div>
-              {activeSession.status === "paused" ? (
-                <div className="devflow-active-badge is-paused">
-                  <Pause className="size-3.5" />
-                  <span>Session Paused</span>
-                </div>
-              ) : (
-                <div className="devflow-active-badge">
-                  <span className="devflow-pulse-dot" />
-                  <span>Active Session</span>
-                </div>
-              )}
+              <div className="devflow-active-badges-row">
+                {activeSession.status === "paused" ? (
+                  <div className="devflow-active-badge is-paused">
+                    <Pause className="size-3.5" />
+                    <span>Session Paused</span>
+                  </div>
+                ) : (
+                  <div className="devflow-active-badge">
+                    <span className="devflow-pulse-dot" />
+                    <span>Active Session</span>
+                  </div>
+                )}
+
+                {activeLinkedTask && (
+                  <div
+                    className="devflow-session-linked-task-badge"
+                    title={`Linked Task: ${activeLinkedTask.title}`}
+                  >
+                    <ListTodo className="size-3.5 shrink-0" />
+                    <span className="truncate">Task: {activeLinkedTask.title}</span>
+                  </div>
+                )}
+              </div>
+
               <h2 className="devflow-active-title">{activeSession.title}</h2>
               {activeSession.description && (
                 <p className="devflow-active-desc">
@@ -413,6 +472,7 @@ export function SessionsPage({ userId }: SessionsPageProps) {
               <SessionCard
                 key={session.id}
                 session={session}
+                taskTitle={session.task_id ? taskMap.get(session.task_id)?.title || null : null}
                 onDelete={handleDeleteSession}
                 isDeleting={deletingId === session.id}
               />

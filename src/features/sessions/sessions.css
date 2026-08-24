@@ -119,8 +119,9 @@
   color: var(--text-h);
 }
 
-/* High Contrast Inputs and Textarea */
+/* High Contrast Inputs, Select, and Textarea */
 .devflow-session-input,
+.devflow-session-select,
 .devflow-session-textarea {
   width: 100%;
   background: var(--code-bg) !important;
@@ -135,6 +136,10 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.devflow-session-select {
+  cursor: pointer;
+}
+
 .devflow-session-input::placeholder,
 .devflow-session-textarea::placeholder {
   color: var(--text) !important;
@@ -142,12 +147,14 @@
 }
 
 .devflow-session-input:focus,
+.devflow-session-select:focus,
 .devflow-session-textarea:focus {
   border-color: #a855f7 !important;
   box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25) !important;
 }
 
 .devflow-session-input:disabled,
+.devflow-session-select:disabled,
 .devflow-session-textarea:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -157,6 +164,34 @@
   min-height: 84px;
   resize: vertical;
   font-family: inherit;
+}
+
+.devflow-session-linked-task-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  max-width: 100%;
+}
+
+.devflow-session-task-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  white-space: nowrap;
 }
 
 .devflow-session-form-actions {
@@ -185,6 +220,13 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.devflow-active-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
