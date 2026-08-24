@@ -1,7 +1,19 @@
-import { useState } from "react";
-import { Circle, Activity, CheckCircle2, Calendar, Pencil, Trash2, Timer } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  Circle,
+  Activity,
+  CheckCircle2,
+  Calendar,
+  Pencil,
+  Trash2,
+  Timer,
+  CheckSquare,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { DevTask } from "../types";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import type { DevTask, TaskSubtask } from "../types";
+import { TaskQuickSubtasksPopover } from "./TaskQuickSubtasksPopover";
 
 export interface TaskCardProps {
   task: DevTask;
@@ -11,6 +23,8 @@ export interface TaskCardProps {
   onEdit: (task: DevTask) => void;
   onDelete: (taskId: string) => Promise<void>;
   isDeleting?: boolean;
+  subtasks?: TaskSubtask[];
+  onSubtasksChange?: (taskId: string, subtasks: TaskSubtask[]) => void;
 }
 
 function formatDate(isoString: string): string {
@@ -38,8 +52,18 @@ export function TaskCard({
   onEdit,
   onDelete,
   isDeleting = false,
+  subtasks = [],
+  onSubtasksChange,
 }: TaskCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
+
+  const subtaskProgress = useMemo(() => {
+    const total = subtasks.length;
+    const completed = subtasks.filter((s) => s.completed).length;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return { total, completed, percent };
+  }, [subtasks]);
 
   const handleDelete = async () => {
     await onDelete(task.id);
@@ -95,6 +119,76 @@ export function TaskCard({
             No description provided.
           </p>
         )}
+
+        {/* Compact Subtasks Progress Section with Portaled Quick View */}
+        <div className="devflow-task-card-subtasks-container">
+          <Popover open={quickViewOpen} onOpenChange={setQuickViewOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={`devflow-task-subtasks-btn ${quickViewOpen ? "is-active" : ""}`}
+                aria-expanded={quickViewOpen}
+                aria-haspopup="dialog"
+                aria-label={
+                  subtaskProgress.total > 0
+                    ? `Subtasks: ${subtaskProgress.completed} of ${subtaskProgress.total} completed. Click to view subtasks`
+                    : "Subtasks: No subtasks. Click to add subtask"
+                }
+                title={subtaskProgress.total > 0 ? "View subtasks" : "Add subtask"}
+              >
+                <div className="devflow-task-subtasks-btn-content">
+                  <div className="devflow-task-subtasks-btn-left">
+                    <CheckSquare className="size-3.5 text-accent shrink-0" />
+                    {subtaskProgress.total > 0 ? (
+                      <>
+                        <span className="devflow-task-subtasks-label">Subtasks</span>
+                        <span className="devflow-task-subtasks-count">
+                          {`${subtaskProgress.completed}/${subtaskProgress.total}`}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="devflow-task-subtasks-label font-medium">
+                        Subtasks <span className="devflow-task-subtasks-dot mx-0.5 text-muted-foreground/70">·</span> <span className="text-accent font-semibold">Add</span>
+                      </span>
+                    )}
+                  </div>
+                  <ChevronRight
+                    className={`size-3 text-muted-foreground transition-transform duration-200 ${
+                      quickViewOpen ? "rotate-90" : ""
+                    }`}
+                  />
+                </div>
+                {subtaskProgress.total > 0 && (
+                  <div className="devflow-task-subtasks-mini-progress">
+                    <div
+                      className={`devflow-task-subtasks-mini-progress-fill ${
+                        subtaskProgress.percent === 100 ? "is-complete" : ""
+                      }`}
+                      style={{ width: `${subtaskProgress.percent}%` }}
+                    />
+                  </div>
+                )}
+              </button>
+            </PopoverTrigger>
+
+            <PopoverContent
+              className="w-80 p-3 bg-popover text-popover-foreground border-border shadow-2xl rounded-xl z-50 overflow-hidden"
+              align="start"
+              sideOffset={6}
+            >
+              <TaskQuickSubtasksPopover
+                taskId={task.id}
+                subtasks={subtasks}
+                onSubtasksChange={(newSubs) => onSubtasksChange?.(task.id, newSubs)}
+                onClose={() => setQuickViewOpen(false)}
+                onOpenEditModal={() => {
+                  setQuickViewOpen(false);
+                  onEdit(task);
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
 
         <div className="devflow-task-card-footer">
           <div className="devflow-task-card-meta">
