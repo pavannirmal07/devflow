@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import type { SessionStatus } from "../types";
 
 interface SessionTimerProps {
-  startedAt: string;
+  status: SessionStatus;
+  accumulatedSeconds?: number | null;
+  lastResumedAt?: string | null;
+  startedAt?: string;
   className?: string;
 }
 
@@ -16,18 +20,46 @@ function formatElapsed(elapsedMs: number): string {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
-export function SessionTimer({ startedAt, className }: SessionTimerProps) {
-  const [elapsed, setElapsed] = useState(() =>
-    Math.max(0, Date.now() - new Date(startedAt).getTime())
-  );
+function computeElapsedMs(
+  status: SessionStatus,
+  accumulatedSeconds?: number | null,
+  lastResumedAt?: string | null,
+  startedAt?: string
+): number {
+  const accumulatedMs = Math.max(0, (accumulatedSeconds || 0) * 1000);
+  if (status === "paused") {
+    return accumulatedMs;
+  }
+  const resumeAnchor = lastResumedAt || startedAt;
+  if (!resumeAnchor) {
+    return accumulatedMs;
+  }
+  const currentSegmentMs = Math.max(0, Date.now() - new Date(resumeAnchor).getTime());
+  return accumulatedMs + currentSegmentMs;
+}
+
+export function SessionTimer({
+  status,
+  accumulatedSeconds = 0,
+  lastResumedAt,
+  startedAt,
+  className,
+}: SessionTimerProps) {
+  const [, setTick] = useState(0);
 
   useEffect(() => {
+    if (status === "paused") {
+      return;
+    }
+
     const interval = setInterval(() => {
-      setElapsed(Math.max(0, Date.now() - new Date(startedAt).getTime()));
+      setTick((t) => t + 1);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [startedAt]);
+  }, [status, lastResumedAt]);
+
+  const elapsed = computeElapsedMs(status, accumulatedSeconds, lastResumedAt, startedAt);
 
   return (
     <span className={cn("font-mono font-semibold tracking-wider", className)}>

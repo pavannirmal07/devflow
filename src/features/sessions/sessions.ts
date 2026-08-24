@@ -7,7 +7,7 @@ export async function getSessions(
   try {
     const { data, error } = await supabase
       .from("sessions")
-      .select("id, user_id, title, description, status, started_at, ended_at, duration_seconds, created_at, updated_at")
+      .select("id, user_id, title, description, status, started_at, ended_at, duration_seconds, accumulated_seconds, last_resumed_at, created_at, updated_at")
       .eq("user_id", userId)
       .order("started_at", { ascending: false });
 
@@ -30,7 +30,7 @@ export async function getSessionById(
   try {
     const { data, error } = await supabase
       .from("sessions")
-      .select("id, user_id, title, description, status, started_at, ended_at, duration_seconds, created_at, updated_at")
+      .select("id, user_id, title, description, status, started_at, ended_at, duration_seconds, accumulated_seconds, last_resumed_at, created_at, updated_at")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -48,19 +48,14 @@ export async function getSessionById(
 }
 
 export async function createSession(
-  userId: string,
+  _userId: string,
   input: CreateSessionInput
 ): Promise<{ session: DevSession | null; error: Error | null }> {
   try {
-    const { data, error } = await supabase
-      .from("sessions")
-      .insert({
-        user_id: userId,
-        title: input.title.trim(),
-        description: input.description?.trim() || null,
-      })
-      .select("id, user_id, title, description, status, started_at, ended_at, duration_seconds, created_at, updated_at")
-      .single();
+    const { data, error } = await supabase.rpc("start_session", {
+      p_title: input.title.trim(),
+      p_description: input.description?.trim() || null,
+    });
 
     if (error) {
       return { session: null, error: new Error(error.message) };
@@ -75,26 +70,55 @@ export async function createSession(
   }
 }
 
-export async function completeSession(
-  sessionId: string,
-  startedAt: string
+export async function pauseSession(
+  sessionId: string
 ): Promise<{ session: DevSession | null; error: Error | null }> {
   try {
-    const startTime = new Date(startedAt).getTime();
-    const now = Date.now();
-    const durationSeconds = Math.max(0, Math.round((now - startTime) / 1000));
-    const endedAt = new Date(now).toISOString();
+    const { data, error } = await supabase.rpc("pause_session", {
+      p_session_id: sessionId,
+    });
 
-    const { data, error } = await supabase
-      .from("sessions")
-      .update({
-        status: "completed",
-        ended_at: endedAt,
-        duration_seconds: durationSeconds,
-      })
-      .eq("id", sessionId)
-      .select("id, user_id, title, description, status, started_at, ended_at, duration_seconds, created_at, updated_at")
-      .single();
+    if (error) {
+      return { session: null, error: new Error(error.message) };
+    }
+
+    return { session: data as DevSession, error: null };
+  } catch (err) {
+    return {
+      session: null,
+      error: err instanceof Error ? err : new Error("Failed to pause session"),
+    };
+  }
+}
+
+export async function resumeSession(
+  sessionId: string
+): Promise<{ session: DevSession | null; error: Error | null }> {
+  try {
+    const { data, error } = await supabase.rpc("resume_session", {
+      p_session_id: sessionId,
+    });
+
+    if (error) {
+      return { session: null, error: new Error(error.message) };
+    }
+
+    return { session: data as DevSession, error: null };
+  } catch (err) {
+    return {
+      session: null,
+      error: err instanceof Error ? err : new Error("Failed to resume session"),
+    };
+  }
+}
+
+export async function completeSession(
+  sessionId: string
+): Promise<{ session: DevSession | null; error: Error | null }> {
+  try {
+    const { data, error } = await supabase.rpc("complete_session", {
+      p_session_id: sessionId,
+    });
 
     if (error) {
       return { session: null, error: new Error(error.message) };
