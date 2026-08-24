@@ -7,6 +7,11 @@ export interface DevProject {
   description: string | null;
   status: ProjectStatus;
   github_url: string | null;
+  github_repository_id: number | null;
+  github_owner: string | null;
+  github_repo: string | null;
+  github_default_branch: string | null;
+  github_installation_id: number | null;
   color: string | null;
   created_at: string;
   updated_at: string;
@@ -17,6 +22,11 @@ export interface CreateProjectInput {
   description?: string | null;
   status?: ProjectStatus;
   github_url?: string | null;
+  github_repository_id?: number | null;
+  github_owner?: string | null;
+  github_repo?: string | null;
+  github_default_branch?: string | null;
+  github_installation_id?: number | null;
   color?: string | null;
 }
 
@@ -25,6 +35,11 @@ export interface UpdateProjectInput {
   description?: string | null;
   status?: ProjectStatus;
   github_url?: string | null;
+  github_repository_id?: number | null;
+  github_owner?: string | null;
+  github_repo?: string | null;
+  github_default_branch?: string | null;
+  github_installation_id?: number | null;
   color?: string | null;
 }
 

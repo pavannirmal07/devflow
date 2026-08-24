@@ -367,27 +367,32 @@
   padding: 16px;
   z-index: 50;
   animation: devflow-fade-in 0.15s ease-out;
+  overflow: hidden;
 }
 
 .devflow-task-modal-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 540px;
+  max-height: min(90vh, 860px);
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--bg);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 24px;
+  padding: 24px 20px 20px 24px;
   animation: devflow-scale-up 0.18s ease-out;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .devflow-task-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
+  padding-right: 4px;
+  margin-bottom: 14px;
 }
 
 .devflow-task-modal-title {
@@ -397,10 +402,41 @@
   margin: 0;
 }
 
+.devflow-task-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .devflow-task-modal-fields {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 14px;
+  padding-left: 2px;
+  padding-bottom: 8px;
+}
+
+.devflow-task-modal-fields::-webkit-scrollbar {
+  width: 5px;
+}
+
+.devflow-task-modal-fields::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.devflow-task-modal-fields::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.devflow-task-modal-fields::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--border) 60%, var(--text));
 }
 
 .devflow-field-group {
@@ -462,7 +498,11 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: 14px;
+  padding-top: 14px;
+  padding-right: 4px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 /* Empty State */

@@ -1,7 +1,8 @@
 import { supabase } from "../../lib/supabase/client";
 import type { CreateProjectInput, DevProject, ProjectStatus, UpdateProjectInput } from "./types";
 
-const PROJECT_COLUMNS = "id, user_id, name, description, status, github_url, color, created_at, updated_at";
+const PROJECT_COLUMNS =
+  "id, user_id, name, description, status, github_url, github_repository_id, github_owner, github_repo, github_default_branch, github_installation_id, color, created_at, updated_at";
 
 export async function getProjects(
   userId: string
@@ -60,6 +61,11 @@ export async function createProject(
       description?: string | null;
       status?: ProjectStatus;
       github_url?: string | null;
+      github_repository_id?: number | null;
+      github_owner?: string | null;
+      github_repo?: string | null;
+      github_default_branch?: string | null;
+      github_installation_id?: number | null;
       color?: string | null;
     } = {
       user_id: userId,
@@ -74,6 +80,21 @@ export async function createProject(
     }
     if (input.github_url !== undefined) {
       payload.github_url = input.github_url ? input.github_url.trim() : null;
+    }
+    if (input.github_repository_id !== undefined) {
+      payload.github_repository_id = input.github_repository_id;
+    }
+    if (input.github_owner !== undefined) {
+      payload.github_owner = input.github_owner ? input.github_owner.trim() : null;
+    }
+    if (input.github_repo !== undefined) {
+      payload.github_repo = input.github_repo ? input.github_repo.trim() : null;
+    }
+    if (input.github_default_branch !== undefined) {
+      payload.github_default_branch = input.github_default_branch ? input.github_default_branch.trim() : null;
+    }
+    if (input.github_installation_id !== undefined) {
+      payload.github_installation_id = input.github_installation_id;
     }
     if (input.color !== undefined) {
       payload.color = input.color ? input.color.trim() : null;
@@ -108,6 +129,11 @@ export async function updateProject(
       description?: string | null;
       status?: ProjectStatus;
       github_url?: string | null;
+      github_repository_id?: number | null;
+      github_owner?: string | null;
+      github_repo?: string | null;
+      github_default_branch?: string | null;
+      github_installation_id?: number | null;
       color?: string | null;
     } = {};
 
@@ -122,6 +148,21 @@ export async function updateProject(
     }
     if (input.github_url !== undefined) {
       payload.github_url = input.github_url ? input.github_url.trim() : null;
+    }
+    if (input.github_repository_id !== undefined) {
+      payload.github_repository_id = input.github_repository_id;
+    }
+    if (input.github_owner !== undefined) {
+      payload.github_owner = input.github_owner ? input.github_owner.trim() : null;
+    }
+    if (input.github_repo !== undefined) {
+      payload.github_repo = input.github_repo ? input.github_repo.trim() : null;
+    }
+    if (input.github_default_branch !== undefined) {
+      payload.github_default_branch = input.github_default_branch ? input.github_default_branch.trim() : null;
+    }
+    if (input.github_installation_id !== undefined) {
+      payload.github_installation_id = input.github_installation_id;
     }
     if (input.color !== undefined) {
       payload.color = input.color ? input.color.trim() : null;

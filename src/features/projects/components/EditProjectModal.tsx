@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PRESET_COLORS } from "../types";
 import type { DevProject, ProjectStatus, UpdateProjectInput } from "../types";
+import { ProjectGitHubSection } from "../../github/components/ProjectGitHubSection";
+import type { ProjectGitHubConfig } from "../../github/types";
 
 export interface EditProjectModalProps {
   project: DevProject | null;
@@ -49,9 +51,15 @@ function EditProjectModalForm({
 }: EditProjectModalFormProps) {
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description || "");
-  const [githubUrl, setGithubUrl] = useState(project.github_url || "");
   const [status, setStatus] = useState<ProjectStatus>(project.status);
   const [color, setColor] = useState<string>(project.color || "#a855f7");
+  const [githubConfig, setGithubConfig] = useState<ProjectGitHubConfig>({
+    github_repository_id: project.github_repository_id,
+    github_owner: project.github_owner,
+    github_repo: project.github_repo,
+    github_default_branch: project.github_default_branch,
+    github_installation_id: project.github_installation_id,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -66,9 +74,17 @@ function EditProjectModalForm({
     const { project: updated, error } = await onSubmit(project.id, {
       name: trimmedName,
       description: description.trim() || null,
-      github_url: githubUrl.trim() || null,
       status,
       color,
+      github_repository_id: githubConfig.github_repository_id,
+      github_owner: githubConfig.github_owner,
+      github_repo: githubConfig.github_repo,
+      github_default_branch: githubConfig.github_default_branch,
+      github_installation_id: githubConfig.github_installation_id,
+      github_url:
+        githubConfig.github_owner && githubConfig.github_repo
+          ? `https://github.com/${githubConfig.github_owner}/${githubConfig.github_repo}`
+          : null,
     });
 
     setIsSubmitting(false);
@@ -129,7 +145,7 @@ function EditProjectModalForm({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="devflow-project-modal-form">
           <div className="devflow-project-modal-fields">
             <div className="devflow-field-group">
               <Label htmlFor="edit-project-name" className="devflow-field-label">
@@ -162,20 +178,13 @@ function EditProjectModalForm({
               />
             </div>
 
-            <div className="devflow-field-group">
-              <Label htmlFor="edit-project-github" className="devflow-field-label">
-                GitHub Repository URL (optional)
-              </Label>
-              <input
-                id="edit-project-github"
-                type="url"
-                placeholder="https://github.com/username/repository"
-                value={githubUrl}
-                onChange={(e) => setGithubUrl(e.target.value)}
-                disabled={isSubmitting}
-                className="devflow-project-input"
-              />
-            </div>
+            {/* GitHub Repository Integration Section */}
+            <ProjectGitHubSection
+              userId={project.user_id}
+              config={githubConfig}
+              onChange={setGithubConfig}
+              disabled={isSubmitting}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <div className="devflow-field-group">

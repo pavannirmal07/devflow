@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import type { DevTask, TaskSubtask } from "../types";
 import { TaskQuickSubtasksPopover } from "./TaskQuickSubtasksPopover";
+import { TaskCardGitHubBadge } from "../../github/components/TaskCardGitHubBadge";
+import type { TaskGitHubLink } from "../../github/types";
 
 export interface TaskCardProps {
   task: DevTask;
@@ -25,6 +27,7 @@ export interface TaskCardProps {
   isDeleting?: boolean;
   subtasks?: TaskSubtask[];
   onSubtasksChange?: (taskId: string, subtasks: TaskSubtask[]) => void;
+  githubLinks?: TaskGitHubLink[];
 }
 
 function formatDate(isoString: string): string {
@@ -54,6 +57,7 @@ export function TaskCard({
   isDeleting = false,
   subtasks = [],
   onSubtasksChange,
+  githubLinks = [],
 }: TaskCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
@@ -107,8 +111,17 @@ export function TaskCard({
                 <span className="truncate">{projectName}</span>
               </span>
             )}
+
           </div>
         </div>
+
+        {/* GitHub Development Section (Separate rows for Branch and PR) */}
+        {githubLinks && githubLinks.length > 0 && (
+          <TaskCardGitHubBadge
+            links={githubLinks}
+            onOpenEditModal={() => onEdit(task)}
+          />
+        )}
 
         <h3 className="devflow-task-card-title">{task.title}</h3>
 

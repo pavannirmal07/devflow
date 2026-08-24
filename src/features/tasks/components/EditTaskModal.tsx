@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import type { DevProject } from "@/features/projects";
 import type { DevTask, TaskPriority, TaskStatus, TaskSubtask, UpdateTaskInput } from "../types";
 import { SubtaskList } from "./SubtaskList";
+import { TaskGitHubSection } from "../../github/components/TaskGitHubSection";
+import type { TaskGitHubLink } from "../../github/types";
 
 export interface EditTaskModalProps {
   task: DevTask | null;
@@ -17,6 +19,8 @@ export interface EditTaskModalProps {
   ) => Promise<{ task: DevTask | null; error: Error | null }>;
   subtasks?: TaskSubtask[];
   onSubtasksChange?: (taskId: string, subtasks: TaskSubtask[]) => void;
+  githubLinks?: TaskGitHubLink[];
+  onGitHubLinksChange?: (taskId: string, links: TaskGitHubLink[]) => void;
 }
 
 export function EditTaskModal({
@@ -27,6 +31,8 @@ export function EditTaskModal({
   onSubmit,
   subtasks,
   onSubtasksChange,
+  githubLinks,
+  onGitHubLinksChange,
 }: EditTaskModalProps) {
   if (!isOpen || !task) return null;
 
@@ -40,6 +46,12 @@ export function EditTaskModal({
       initialSubtasks={subtasks}
       onSubtasksChange={
         onSubtasksChange ? (subs) => onSubtasksChange(task.id, subs) : undefined
+      }
+      initialGitHubLinks={githubLinks}
+      onGitHubLinksChange={
+        onGitHubLinksChange
+          ? (links) => onGitHubLinksChange(task.id, links)
+          : undefined
       }
     />
   );
@@ -55,6 +67,8 @@ interface EditTaskModalFormProps {
   ) => Promise<{ task: DevTask | null; error: Error | null }>;
   initialSubtasks?: TaskSubtask[];
   onSubtasksChange?: (subtasks: TaskSubtask[]) => void;
+  initialGitHubLinks?: TaskGitHubLink[];
+  onGitHubLinksChange?: (links: TaskGitHubLink[]) => void;
 }
 
 function EditTaskModalForm({
@@ -64,6 +78,8 @@ function EditTaskModalForm({
   onSubmit,
   initialSubtasks,
   onSubtasksChange,
+  initialGitHubLinks,
+  onGitHubLinksChange,
 }: EditTaskModalFormProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
@@ -73,6 +89,17 @@ function EditTaskModalForm({
   const [dueDate, setDueDate] = useState(task.due_date || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const selectedProject = projects.find((p) => p.id === projectId);
+  const projectConfig = selectedProject
+    ? {
+        github_repository_id: selectedProject.github_repository_id,
+        github_owner: selectedProject.github_owner,
+        github_repo: selectedProject.github_repo,
+        github_default_branch: selectedProject.github_default_branch,
+        github_installation_id: selectedProject.github_installation_id,
+      }
+    : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,7 +176,7 @@ function EditTaskModalForm({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="devflow-task-modal-form">
           <div className="devflow-task-modal-fields">
             <div className="devflow-field-group">
               <Label htmlFor="edit-task-title-input" className="devflow-field-label">
@@ -260,6 +287,15 @@ function EditTaskModalForm({
               taskId={task.id}
               initialSubtasks={initialSubtasks}
               onSubtasksChange={onSubtasksChange}
+              disabled={isSubmitting}
+            />
+
+            {/* GitHub Development Section */}
+            <TaskGitHubSection
+              taskId={task.id}
+              projectConfig={projectConfig}
+              initialLinks={initialGitHubLinks}
+              onLinksChange={onGitHubLinksChange}
               disabled={isSubmitting}
             />
           </div>

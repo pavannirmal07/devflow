@@ -20,7 +20,9 @@ export function TasksPage({ userId }: TasksPageProps) {
   const {
     tasks,
     subtasksMap,
+    githubLinksMap,
     updateTaskSubtasks,
+    updateTaskGitHubLinks,
     loading,
     error,
     createTask,
@@ -329,6 +331,7 @@ export function TasksPage({ userId }: TasksPageProps) {
                 isDeleting={deletingTaskId === task.id}
                 subtasks={subtasksMap[task.id] || []}
                 onSubtasksChange={updateTaskSubtasks}
+                githubLinks={githubLinksMap[task.id] || []}
               />
             );
           })}
@@ -352,6 +355,8 @@ export function TasksPage({ userId }: TasksPageProps) {
         onSubmit={updateTask}
         subtasks={editingTask ? subtasksMap[editingTask.id] || [] : []}
         onSubtasksChange={updateTaskSubtasks}
+        githubLinks={editingTask ? githubLinksMap[editingTask.id] || [] : []}
+        onGitHubLinksChange={updateTaskGitHubLinks}
       />
     </div>
   );

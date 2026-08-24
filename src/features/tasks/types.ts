@@ -60,3 +60,5 @@ export interface SubtaskProgress {
   completed: number;
   percent: number;
 }
+
+export type { TaskGitHubLink, TaskGitHubLinkType, CreateGitHubLinkInput } from "../github/types";

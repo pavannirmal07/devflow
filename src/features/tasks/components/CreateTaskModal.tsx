@@ -128,7 +128,7 @@ function CreateTaskModalForm({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="devflow-task-modal-form">
           <div className="devflow-task-modal-fields">
             <div className="devflow-field-group">
               <Label htmlFor="create-task-title-input" className="devflow-field-label">
