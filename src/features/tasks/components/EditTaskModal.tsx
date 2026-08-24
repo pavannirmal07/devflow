@@ -3,7 +3,8 @@ import { X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { DevProject } from "@/features/projects";
-import type { DevTask, TaskPriority, TaskStatus, UpdateTaskInput } from "../types";
+import type { DevTask, TaskPriority, TaskStatus, TaskSubtask, UpdateTaskInput } from "../types";
+import { SubtaskList } from "./SubtaskList";
 
 export interface EditTaskModalProps {
   task: DevTask | null;
@@ -14,6 +15,8 @@ export interface EditTaskModalProps {
     taskId: string,
     input: UpdateTaskInput
   ) => Promise<{ task: DevTask | null; error: Error | null }>;
+  subtasks?: TaskSubtask[];
+  onSubtasksChange?: (taskId: string, subtasks: TaskSubtask[]) => void;
 }
 
 export function EditTaskModal({
@@ -22,6 +25,8 @@ export function EditTaskModal({
   isOpen,
   onClose,
   onSubmit,
+  subtasks,
+  onSubtasksChange,
 }: EditTaskModalProps) {
   if (!isOpen || !task) return null;
 
@@ -32,6 +37,10 @@ export function EditTaskModal({
       projects={projects}
       onClose={onClose}
       onSubmit={onSubmit}
+      initialSubtasks={subtasks}
+      onSubtasksChange={
+        onSubtasksChange ? (subs) => onSubtasksChange(task.id, subs) : undefined
+      }
     />
   );
 }
@@ -44,6 +53,8 @@ interface EditTaskModalFormProps {
     taskId: string,
     input: UpdateTaskInput
   ) => Promise<{ task: DevTask | null; error: Error | null }>;
+  initialSubtasks?: TaskSubtask[];
+  onSubtasksChange?: (subtasks: TaskSubtask[]) => void;
 }
 
 function EditTaskModalForm({
@@ -51,6 +62,8 @@ function EditTaskModalForm({
   projects,
   onClose,
   onSubmit,
+  initialSubtasks,
+  onSubtasksChange,
 }: EditTaskModalFormProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
@@ -241,6 +254,14 @@ function EditTaskModalForm({
                 </select>
               </div>
             </div>
+
+            {/* Subtasks Management Section */}
+            <SubtaskList
+              taskId={task.id}
+              initialSubtasks={initialSubtasks}
+              onSubtasksChange={onSubtasksChange}
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="devflow-task-modal-actions">

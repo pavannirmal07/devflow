@@ -676,3 +676,406 @@
     transform: scale(1);
   }
 }
+
+/* ==========================================================================
+   Subtasks V1 Styles
+   ========================================================================== */
+
+/* Subtasks in Modal (Full Management) */
+.devflow-subtasks-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.devflow-subtasks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.devflow-subtasks-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.devflow-subtasks-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.devflow-subtasks-counter {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--code-bg);
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.devflow-subtasks-complete-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.12);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+/* Progress Track and Fill */
+.devflow-subtasks-progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--code-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.devflow-subtasks-progress-fill {
+  height: 100%;
+  background: #a855f7;
+  border-radius: 4px;
+  transition: width 0.25s ease-in-out;
+}
+
+.devflow-subtasks-progress-fill.is-complete {
+  background: #22c55e;
+}
+
+/* Subtasks List */
+.devflow-subtasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.devflow-subtasks-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--code-bg);
+}
+
+/* Subtask Item */
+.devflow-subtask-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.devflow-subtask-item:hover {
+  background: var(--code-bg);
+}
+
+.devflow-subtask-item.is-completed .devflow-subtask-text {
+  text-decoration: line-through;
+  color: var(--text);
+  opacity: 0.75;
+}
+
+/* Checkbox */
+.devflow-subtask-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  min-width: 0;
+  flex: 1;
+}
+
+.devflow-subtask-checkbox-custom {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.devflow-subtask-checkbox-custom:hover {
+  border-color: #a855f7;
+}
+
+.devflow-subtask-checkbox-custom.is-checked {
+  background: #a855f7;
+  border-color: #a855f7;
+}
+
+.devflow-subtask-checkbox-input:focus-visible + .devflow-subtask-checkbox-custom {
+  outline: 2px solid #a855f7;
+  outline-offset: 2px;
+}
+
+.devflow-subtask-text {
+  font-size: 13px;
+  color: var(--text-h);
+  line-height: 1.4;
+  word-break: break-word;
+  transition: color 0.15s ease;
+}
+
+/* Hover Action Controls */
+.devflow-subtask-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.devflow-subtask-item:hover .devflow-subtask-actions,
+.devflow-subtask-item:focus-within .devflow-subtask-actions {
+  opacity: 1;
+}
+
+.devflow-subtask-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+}
+
+/* Inline Edit Form */
+.devflow-subtask-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.devflow-subtask-edit-input {
+  flex: 1;
+  background: var(--code-bg);
+  border: 1px solid #a855f7;
+  color: var(--text-h);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12.5px;
+  outline: none;
+}
+
+/* Quick Add Form in Modal */
+.devflow-subtask-add-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.devflow-subtask-add-input {
+  flex: 1;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.devflow-subtask-add-input:focus {
+  border-color: #a855f7;
+}
+
+/* ==========================================================================
+   TaskCard Compact Subtasks Button & Quick View Popover
+   ========================================================================== */
+
+.devflow-task-card-subtasks-container {
+  position: relative;
+}
+
+.devflow-task-subtasks-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.devflow-task-subtasks-btn:hover {
+  background: color-mix(in srgb, var(--code-bg) 80%, var(--accent-bg));
+  border-color: color-mix(in srgb, var(--border) 60%, var(--accent));
+}
+
+.devflow-task-subtasks-btn:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 1px;
+}
+
+.devflow-task-subtasks-btn.is-active {
+  border-color: #a855f7;
+  background: color-mix(in srgb, var(--code-bg) 75%, var(--accent-bg));
+}
+
+.devflow-task-subtasks-btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.devflow-task-subtasks-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.devflow-task-subtasks-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.devflow-task-subtasks-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 15%, transparent);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+
+.devflow-task-subtasks-mini-progress {
+  width: 100%;
+  height: 3px;
+  background: color-mix(in srgb, var(--text) 15%, transparent);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.devflow-task-subtasks-mini-progress-fill {
+  height: 100%;
+  background: #a855f7;
+  border-radius: 3px;
+  transition: width 0.25s ease;
+}
+
+.devflow-task-subtasks-mini-progress-fill.is-complete {
+  background: #22c55e;
+}
+
+/* Quick Subtasks Popover Content */
+.devflow-quick-subtasks-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.devflow-quick-subtasks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.devflow-quick-subtasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.devflow-quick-subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  transition: background-color 0.12s ease;
+}
+
+.devflow-quick-subtask-item:hover {
+  background: var(--code-bg);
+}
+
+.devflow-quick-subtask-item.is-completed .devflow-subtask-text {
+  text-decoration: line-through;
+  color: var(--text);
+  opacity: 0.75;
+}
+
+.devflow-quick-subtasks-add-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.devflow-quick-subtasks-add-input {
+  flex: 1;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.devflow-quick-subtasks-add-input:focus {
+  border-color: #a855f7;
+}
+
+.devflow-quick-subtasks-footer {
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.devflow-quick-subtasks-manage-btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.devflow-quick-subtasks-manage-btn:hover {
+  color: #a855f7;
+}

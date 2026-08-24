@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
-import type { CreateTaskInput, DevTask, UpdateTaskInput } from "./types";
+import { useCallback, useEffect, useState } from "react";
+import type { CreateTaskInput, DevTask, TaskSubtask, UpdateTaskInput } from "./types";
 import {
   getTasks,
   createTask as createTaskApi,
   updateTask as updateTaskApi,
   deleteTask as deleteTaskApi,
 } from "./tasks";
+import { getAllSubtasksForUser } from "./subtasks";
 
 export function useTasks(userId?: string) {
   const [tasks, setTasks] = useState<DevTask[]>([]);
+  const [subtasksMap, setSubtasksMap] = useState<Record<string, TaskSubtask[]>>({});
   const [loading, setLoading] = useState(Boolean(userId));
   const [error, setError] = useState<string | null>(null);
 
@@ -19,24 +21,48 @@ export function useTasks(userId?: string) {
 
     let isSubscribed = true;
 
-    getTasks(userId).then(({ tasks: fetchedTasks, error: fetchError }) => {
-      if (!isSubscribed) return;
+    Promise.all([getTasks(userId), getAllSubtasksForUser(userId)]).then(
+      ([tasksRes, subtasksRes]) => {
+        if (!isSubscribed) return;
 
-      if (fetchError) {
-        console.error("Failed to load tasks:", fetchError);
-        setError(fetchError.message);
-        setTasks([]);
-      } else {
-        setTasks(fetchedTasks || []);
-        setError(null);
+        if (tasksRes.error) {
+          console.error("Failed to load tasks:", tasksRes.error);
+          setError(tasksRes.error.message);
+          setTasks([]);
+          setSubtasksMap({});
+        } else {
+          setTasks(tasksRes.tasks || []);
+          setError(null);
+
+          const map: Record<string, TaskSubtask[]> = {};
+          if (subtasksRes.subtasks) {
+            for (const sub of subtasksRes.subtasks) {
+              if (!map[sub.task_id]) {
+                map[sub.task_id] = [];
+              }
+              map[sub.task_id].push(sub);
+            }
+            for (const key of Object.keys(map)) {
+              map[key].sort((a, b) => a.position - b.position);
+            }
+          }
+          setSubtasksMap(map);
+        }
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    );
 
     return () => {
       isSubscribed = false;
     };
   }, [userId]);
+
+  const updateTaskSubtasks = useCallback((taskId: string, subtasks: TaskSubtask[]) => {
+    setSubtasksMap((prev) => ({
+      ...prev,
+      [taskId]: [...subtasks].sort((a, b) => a.position - b.position),
+    }));
+  }, []);
 
   const createTask = async (
     input: CreateTaskInput
@@ -109,6 +135,11 @@ export function useTasks(userId?: string) {
     }
 
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    setSubtasksMap((prev) => {
+      const next = { ...prev };
+      delete next[taskId];
+      return next;
+    });
     setError(null);
     return { error: null };
   };
@@ -117,19 +148,38 @@ export function useTasks(userId?: string) {
     if (!userId) return;
 
     setLoading(true);
-    const { tasks: fetchedTasks, error: fetchError } = await getTasks(userId);
+    const [tasksRes, subtasksRes] = await Promise.all([
+      getTasks(userId),
+      getAllSubtasksForUser(userId),
+    ]);
 
-    if (fetchError) {
-      setError(fetchError.message);
+    if (tasksRes.error) {
+      setError(tasksRes.error.message);
     } else {
-      setTasks(fetchedTasks || []);
+      setTasks(tasksRes.tasks || []);
       setError(null);
+
+      const map: Record<string, TaskSubtask[]> = {};
+      if (subtasksRes.subtasks) {
+        for (const sub of subtasksRes.subtasks) {
+          if (!map[sub.task_id]) {
+            map[sub.task_id] = [];
+          }
+          map[sub.task_id].push(sub);
+        }
+        for (const key of Object.keys(map)) {
+          map[key].sort((a, b) => a.position - b.position);
+        }
+      }
+      setSubtasksMap(map);
     }
     setLoading(false);
   };
 
   return {
     tasks: userId ? tasks : [],
+    subtasksMap,
+    updateTaskSubtasks,
     loading: userId ? loading : false,
     error: userId ? error : null,
     createTask,

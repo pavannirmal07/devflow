@@ -19,6 +19,8 @@ type FilterStatus = "all" | TaskStatus;
 export function TasksPage({ userId }: TasksPageProps) {
   const {
     tasks,
+    subtasksMap,
+    updateTaskSubtasks,
     loading,
     error,
     createTask,
@@ -325,6 +327,8 @@ export function TasksPage({ userId }: TasksPageProps) {
                 onEdit={(t) => setEditingTask(t)}
                 onDelete={handleDelete}
                 isDeleting={deletingTaskId === task.id}
+                subtasks={subtasksMap[task.id] || []}
+                onSubtasksChange={updateTaskSubtasks}
               />
             );
           })}
@@ -346,6 +350,8 @@ export function TasksPage({ userId }: TasksPageProps) {
         isOpen={Boolean(editingTask)}
         onClose={() => setEditingTask(null)}
         onSubmit={updateTask}
+        subtasks={editingTask ? subtasksMap[editingTask.id] || [] : []}
+        onSubtasksChange={updateTaskSubtasks}
       />
     </div>
   );
