@@ -82,6 +82,11 @@ export function TasksPage({ userId }: TasksPageProps) {
   };
 
   const handleStartFocusSession = async (task: DevTask) => {
+    if (task.status === "completed") {
+      setSessionWarning("Completed tasks cannot start a focus session. Reopen the task first.");
+      return;
+    }
+
     // Sessions V2 defines in-progress as active OR paused
     if (activeSession) {
       setSessionWarning(
@@ -102,6 +107,7 @@ export function TasksPage({ userId }: TasksPageProps) {
     if (startErr) {
       setActionError(startErr.message);
     } else if (session) {
+      await refreshTasks();
       window.location.hash = "sessions";
     }
   };
@@ -161,7 +167,7 @@ export function TasksPage({ userId }: TasksPageProps) {
               type="button"
               variant="outline"
               size="xs"
-              className="border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
+              className="devflow-alert-btn devflow-alert-btn-secondary"
               onClick={() => {
                 window.location.hash = "sessions";
               }}
@@ -170,8 +176,9 @@ export function TasksPage({ userId }: TasksPageProps) {
             </Button>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="xs"
+              className="devflow-alert-btn devflow-alert-btn-dismiss"
               onClick={() => setSessionWarning(null)}
               aria-label="Dismiss warning"
             >
