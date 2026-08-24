@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Clock, Calendar, Trash2, CheckCircle2 } from "lucide-react";
+import { Clock, Calendar, Trash2, CheckCircle2, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DevSession } from "../types";
 
 interface SessionCardProps {
   session: DevSession;
+  taskTitle?: string | null;
   onDelete: (sessionId: string) => Promise<void>;
   isDeleting?: boolean;
 }
@@ -33,6 +34,7 @@ function formatDateTime(isoString: string): string {
 
 export function SessionCard({
   session,
+  taskTitle,
   onDelete,
   isDeleting = false,
 }: SessionCardProps) {
@@ -53,6 +55,12 @@ export function SessionCard({
               <span>Completed</span>
             </span>
             <h3 className="devflow-session-card-title">{session.title}</h3>
+            {taskTitle && (
+              <span className="devflow-session-task-tag" title={`Linked Task: ${taskTitle}`}>
+                <ListTodo className="size-3" />
+                <span className="truncate max-w-50">{taskTitle}</span>
+              </span>
+            )}
           </div>
           <span className="devflow-session-duration-pill">
             <Clock className="size-3.5" />

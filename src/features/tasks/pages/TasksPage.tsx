@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Plus, ListTodo, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/features/projects";
+import { useSessions } from "@/features/sessions";
 import { useTasks } from "../useTasks";
 import { TaskCard } from "../components/TaskCard";
 import { CreateTaskModal } from "../components/CreateTaskModal";
@@ -27,6 +28,7 @@ export function TasksPage({ userId }: TasksPageProps) {
   } = useTasks(userId);
 
   const { projects } = useProjects(userId);
+  const { activeSession, startSession } = useSessions(userId);
 
   const [activeStatusFilter, setActiveStatusFilter] = useState<FilterStatus>("all");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
@@ -34,6 +36,7 @@ export function TasksPage({ userId }: TasksPageProps) {
   const [editingTask, setEditingTask] = useState<DevTask | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [sessionWarning, setSessionWarning] = useState<string | null>(null);
 
   // Map projects for fast lookup
   const projectMap = useMemo(() => {
@@ -78,6 +81,31 @@ export function TasksPage({ userId }: TasksPageProps) {
     }
   };
 
+  const handleStartFocusSession = async (task: DevTask) => {
+    // Sessions V2 defines in-progress as active OR paused
+    if (activeSession) {
+      setSessionWarning(
+        `A session is already in progress (${activeSession.status === "paused" ? "paused" : "active"}: "${activeSession.title}"). Please complete your current session before starting a new one.`
+      );
+      return;
+    }
+
+    setSessionWarning(null);
+    setActionError(null);
+
+    const { session, error: startErr } = await startSession({
+      title: task.title,
+      description: task.description || undefined,
+      task_id: task.id,
+    });
+
+    if (startErr) {
+      setActionError(startErr.message);
+    } else if (session) {
+      window.location.hash = "sessions";
+    }
+  };
+
   return (
     <div className="devflow-tasks-page">
       {/* Header */}
@@ -118,6 +146,38 @@ export function TasksPage({ userId }: TasksPageProps) {
             <RefreshCw className="size-3 mr-1" />
             <span>Try Again</span>
           </Button>
+        </div>
+      )}
+
+      {/* Active Session Warning Banner */}
+      {sessionWarning && (
+        <div className="devflow-task-alert is-warning" role="alert">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{sessionWarning}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              className="border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
+              onClick={() => {
+                window.location.hash = "sessions";
+              }}
+            >
+              View Session
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() => setSessionWarning(null)}
+              aria-label="Dismiss warning"
+            >
+              Dismiss
+            </Button>
+          </div>
         </div>
       )}
 
@@ -254,6 +314,7 @@ export function TasksPage({ userId }: TasksPageProps) {
                 task={task}
                 projectName={projectInfo ? projectInfo.name : null}
                 projectColor={projectInfo ? projectInfo.color : null}
+                onStartSession={handleStartFocusSession}
                 onEdit={(t) => setEditingTask(t)}
                 onDelete={handleDelete}
                 isDeleting={deletingTaskId === task.id}
