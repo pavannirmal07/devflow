@@ -730,6 +730,10 @@
   flex-shrink: 0;
 }
 
+.devflow-project-workspace-active-session {
+  width: 100%;
+}
+
 /* Metrics Row */
 .devflow-project-metrics-grid {
   display: grid;

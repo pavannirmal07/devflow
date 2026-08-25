@@ -34,56 +34,77 @@ export function TaskCompletionPrompt({
   onMarkTaskDone,
   isUpdatingTask = false,
 }: TaskCompletionPromptProps) {
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget && !isUpdatingTask) {
+      onKeepInProgress();
+    }
+  };
+
   return (
-    <div className="devflow-session-completion-prompt" role="status">
-      <div className="devflow-completion-prompt-content">
-        <div className="devflow-completion-prompt-header">
-          <CheckCircle2 className="size-5 text-emerald-500 shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <h3 className="devflow-completion-prompt-title">Session Completed</h3>
-            <p className="devflow-completion-prompt-desc">
-              You worked on{" "}
-              <span className="font-semibold">"{promptState.taskTitle}"</span> for{" "}
-              <span className="font-semibold">
-                {formatPromptDuration(promptState.durationSeconds)}
-              </span>.
-            </p>
-            <p className="devflow-completion-prompt-question">
-              Would you like to mark this task as completed?
-            </p>
+    <div
+      className="devflow-session-completion-prompt-backdrop"
+      onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="completion-prompt-title"
+    >
+      <div
+        className="devflow-session-completion-prompt"
+        role="status"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="devflow-completion-prompt-content">
+          <div className="devflow-completion-prompt-header">
+            <CheckCircle2 className="size-5 text-emerald-500 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <h3 id="completion-prompt-title" className="devflow-completion-prompt-title">
+                Session Completed
+              </h3>
+              <p className="devflow-completion-prompt-desc">
+                You worked on{" "}
+                <span className="font-semibold">"{promptState.taskTitle}"</span> for{" "}
+                <span className="font-semibold">
+                  {formatPromptDuration(promptState.durationSeconds)}
+                </span>.
+              </p>
+              <p className="devflow-completion-prompt-question">
+                Would you like to mark this task as completed?
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onKeepInProgress}
+              disabled={isUpdatingTask}
+              aria-label="Dismiss completion prompt"
+            >
+              <X className="size-3.5" />
+            </Button>
           </div>
+        </div>
+        <div className="devflow-completion-prompt-actions">
           <Button
             type="button"
-            variant="ghost"
-            size="icon-xs"
+            variant="outline"
+            size="sm"
+            className="devflow-completion-btn-secondary h-8 px-3 text-xs"
             onClick={onKeepInProgress}
-            aria-label="Dismiss completion prompt"
+            disabled={isUpdatingTask}
           >
-            <X className="size-3.5" />
+            Keep In Progress
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="devflow-btn-primary h-8 px-3 text-xs gap-1.5"
+            onClick={onMarkTaskDone}
+            disabled={isUpdatingTask}
+          >
+            <Check className="size-3.5" />
+            <span>{isUpdatingTask ? "Updating..." : "Mark Task as Done"}</span>
           </Button>
         </div>
-      </div>
-      <div className="devflow-completion-prompt-actions">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="devflow-completion-btn-secondary h-8 px-3 text-xs"
-          onClick={onKeepInProgress}
-          disabled={isUpdatingTask}
-        >
-          Keep In Progress
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          className="devflow-btn-primary h-8 px-3 text-xs gap-1.5"
-          onClick={onMarkTaskDone}
-          disabled={isUpdatingTask}
-        >
-          <Check className="size-3.5" />
-          <span>{isUpdatingTask ? "Updating..." : "Mark Task as Done"}</span>
-        </Button>
       </div>
     </div>
   );

@@ -22,10 +22,12 @@ import { useSessions, TaskCompletionPrompt, type TaskCompletionPromptState } fro
 import { TaskBoard } from "@/features/tasks/components/TaskBoard";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { EditTaskModal } from "@/features/tasks/components/EditTaskModal";
+import { DashboardActiveSessionCard } from "@/features/dashboard/components/DashboardActiveSessionCard";
 import type { DevTask, TaskStatus } from "@/features/tasks/types";
-import { formatDuration } from "@/features/tasks/utils/duration";
+import { formatDuration, computeSessionDuration } from "@/features/tasks/utils/duration";
 import type { DevProject } from "../types";
 import { deriveProjectMetrics } from "../utils/projectMetrics";
+import "@/features/dashboard/dashboard.css";
 
 export interface ProjectWorkspaceProps {
   userId: string;
@@ -69,6 +71,9 @@ export function ProjectWorkspace({
     sessions,
     activeSession,
     startSession,
+    pauseSession,
+    resumeSession,
+    endSession,
   } = useSessions(userId);
 
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
@@ -76,6 +81,7 @@ export function ProjectWorkspace({
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [sessionWarning, setSessionWarning] = useState<string | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
   const [taskCompletionPrompt, setTaskCompletionPrompt] =
     useState<TaskCompletionPromptState | null>(null);
 
@@ -92,6 +98,24 @@ export function ProjectWorkspace({
   const projectTasks = useMemo(() => {
     return tasks.filter((t) => t.project_id === project.id);
   }, [tasks, project.id]);
+
+  // Active session linked details
+  const activeLinkedTask = activeSession?.task_id
+    ? tasks.find((t) => t.id === activeSession.task_id) || null
+    : null;
+
+  const activeLinkedGitHubLinks = activeSession?.task_id
+    ? githubLinksMap[activeSession.task_id] || []
+    : [];
+
+  const activeProjectInfo = activeLinkedTask?.project_id
+    ? projectMap.get(activeLinkedTask.project_id)
+    : (activeSession?.task_id && projectTasks.some((t) => t.id === activeSession.task_id)
+      ? { name: project.name, color: project.color }
+      : null);
+
+  const activeSessionProjectName = activeProjectInfo ? activeProjectInfo.name : project.name;
+  const activeSessionProjectColor = activeProjectInfo ? activeProjectInfo.color : project.color;
 
   // Ticking effect if an active session is running for a task in this project
   const isProjectSessionActive = Boolean(
@@ -163,7 +187,61 @@ export function ProjectWorkspace({
       setActionError(startErr.message);
     } else if (session) {
       await refreshTasks();
-      window.location.hash = "sessions";
+      // Remain directly inside the Project Workspace
+    }
+  };
+
+  const handlePauseSession = async (sessionId: string) => {
+    setIsActionLoading(true);
+    setActionError(null);
+    const { error } = await pauseSession(sessionId);
+    setIsActionLoading(false);
+    if (error) {
+      setActionError(error.message);
+    }
+  };
+
+  const handleResumeSession = async (sessionId: string) => {
+    setIsActionLoading(true);
+    setActionError(null);
+    const { error } = await resumeSession(sessionId);
+    setIsActionLoading(false);
+    if (error) {
+      setActionError(error.message);
+    }
+  };
+
+  const handleCompleteSession = async (sessionId: string) => {
+    setIsActionLoading(true);
+    setActionError(null);
+
+    const targetSession =
+      activeSession?.id === sessionId
+        ? activeSession
+        : sessions.find((s) => s.id === sessionId);
+
+    const finalDuration = targetSession
+      ? computeSessionDuration(targetSession)
+      : 0;
+
+    const linkedTask = targetSession?.task_id
+      ? tasks.find((t) => t.id === targetSession.task_id) || null
+      : null;
+
+    const { session, error } = await endSession(sessionId);
+    setIsActionLoading(false);
+
+    if (error) {
+      setActionError(error.message);
+    } else if (session && linkedTask && linkedTask.status !== "completed") {
+      setTaskCompletionPrompt({
+        taskId: linkedTask.id,
+        taskTitle: linkedTask.title,
+        durationSeconds: finalDuration,
+      });
+      await refreshTasks();
+    } else {
+      await refreshTasks();
     }
   };
 
@@ -217,29 +295,16 @@ export function ProjectWorkspace({
             <AlertCircle className="size-4 shrink-0" />
             <span>{sessionWarning}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant="outline"
-              size="xs"
-              className="devflow-alert-btn devflow-alert-btn-secondary"
-              onClick={() => {
-                window.location.hash = "sessions";
-              }}
-            >
-              View Session
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="xs"
-              className="devflow-alert-btn devflow-alert-btn-dismiss"
-              onClick={() => setSessionWarning(null)}
-              aria-label="Dismiss warning"
-            >
-              Dismiss
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            className="devflow-alert-btn devflow-alert-btn-dismiss"
+            onClick={() => setSessionWarning(null)}
+            aria-label="Dismiss warning"
+          >
+            Dismiss
+          </Button>
         </div>
       )}
 
@@ -339,6 +404,24 @@ export function ProjectWorkspace({
           </Button>
         </div>
       </div>
+
+      {/* Active Focus Session Card (Prominent when running/paused) */}
+      {activeSession && (
+        <div className="devflow-project-workspace-active-session">
+          <DashboardActiveSessionCard
+            activeSession={activeSession}
+            linkedTask={activeLinkedTask}
+            linkedGitHubLinks={activeLinkedGitHubLinks}
+            projectName={activeSessionProjectName}
+            projectColor={activeSessionProjectColor}
+            onPause={handlePauseSession}
+            onResume={handleResumeSession}
+            onComplete={handleCompleteSession}
+            onStartNewSession={() => {}}
+            isActionLoading={isActionLoading}
+          />
+        </div>
+      )}
 
       {/* Metrics Row */}
       <div className="devflow-project-metrics-grid" aria-label="Project metrics">
