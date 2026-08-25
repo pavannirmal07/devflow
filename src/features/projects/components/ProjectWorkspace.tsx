@@ -1,0 +1,546 @@
+import { useState, useMemo, useEffect } from "react";
+import {
+  ArrowLeft,
+  Plus,
+  Pencil,
+  GitBranch,
+  ExternalLink,
+  Clock,
+  Circle,
+  Activity,
+  CheckCircle2,
+  Timer,
+  AlertCircle,
+  FolderKanban,
+  Archive,
+  RefreshCw,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { GitHubIcon } from "@/features/github/components/GitHubIcon";
+import { useTasks } from "@/features/tasks/useTasks";
+import { useSessions, TaskCompletionPrompt, type TaskCompletionPromptState } from "@/features/sessions";
+import { TaskBoard } from "@/features/tasks/components/TaskBoard";
+import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
+import { EditTaskModal } from "@/features/tasks/components/EditTaskModal";
+import type { DevTask, TaskStatus } from "@/features/tasks/types";
+import { formatDuration } from "@/features/tasks/utils/duration";
+import type { DevProject } from "../types";
+import { deriveProjectMetrics } from "../utils/projectMetrics";
+
+export interface ProjectWorkspaceProps {
+  userId: string;
+  project: DevProject;
+  projects: DevProject[];
+  onBack: () => void;
+  onEditProject: (project: DevProject) => void;
+}
+
+function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function ProjectWorkspace({
+  userId,
+  project,
+  projects,
+  onBack,
+  onEditProject,
+}: ProjectWorkspaceProps) {
+  const {
+    tasks,
+    subtasksMap,
+    githubLinksMap,
+    taskTimeMap,
+    updateTaskSubtasks,
+    updateTaskGitHubLinks,
+    createTask,
+    updateTask,
+    deleteTask,
+    refreshTasks,
+  } = useTasks(userId);
+
+  const {
+    sessions,
+    activeSession,
+    startSession,
+  } = useSessions(userId);
+
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<DevTask | null>(null);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [sessionWarning, setSessionWarning] = useState<string | null>(null);
+  const [taskCompletionPrompt, setTaskCompletionPrompt] =
+    useState<TaskCompletionPromptState | null>(null);
+
+  // Fast project lookup map
+  const projectMap = useMemo(() => {
+    const map = new Map<string, { name: string; color: string | null }>();
+    for (const p of projects) {
+      map.set(p.id, { name: p.name, color: p.color });
+    }
+    return map;
+  }, [projects]);
+
+  // Tasks belonging to this project
+  const projectTasks = useMemo(() => {
+    return tasks.filter((t) => t.project_id === project.id);
+  }, [tasks, project.id]);
+
+  // Ticking effect if an active session is running for a task in this project
+  const isProjectSessionActive = Boolean(
+    activeSession &&
+      activeSession.status === "active" &&
+      activeSession.task_id &&
+      projectTasks.some((t) => t.id === activeSession.task_id)
+  );
+
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!isProjectSessionActive) return;
+    const interval = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isProjectSessionActive]);
+
+  // Derived in-memory metrics
+  const metrics = useMemo(() => {
+    void tick;
+    return deriveProjectMetrics(project.id, tasks, sessions, activeSession);
+  }, [project.id, tasks, sessions, activeSession, tick]);
+
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    const target = tasks.find((t) => t.id === taskId);
+    if (!target || target.status === newStatus) return;
+
+    setActionError(null);
+    const { error: updateErr } = await updateTask(taskId, { status: newStatus });
+    if (updateErr) {
+      setActionError(updateErr.message);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    setDeletingTaskId(taskId);
+    setActionError(null);
+    const { error: delError } = await deleteTask(taskId);
+    setDeletingTaskId(null);
+    if (delError) {
+      setActionError(delError.message);
+    }
+  };
+
+  const handleStartSession = async (task: DevTask) => {
+    if (task.status === "completed") {
+      setSessionWarning("Completed tasks cannot start a focus session. Reopen the task first.");
+      return;
+    }
+
+    if (activeSession) {
+      setSessionWarning(
+        `A session is already in progress (${activeSession.status === "paused" ? "paused" : "active"}: "${activeSession.title}"). Please complete your current session before starting a new one.`
+      );
+      return;
+    }
+
+    setSessionWarning(null);
+    setActionError(null);
+
+    const { session, error: startErr } = await startSession({
+      title: task.title,
+      description: task.description || undefined,
+      task_id: task.id,
+    });
+
+    if (startErr) {
+      setActionError(startErr.message);
+    } else if (session) {
+      await refreshTasks();
+      window.location.hash = "sessions";
+    }
+  };
+
+  const projectColor = project.color || "#a855f7";
+  const hasGitHub = Boolean(project.github_owner && project.github_repo);
+
+  return (
+    <div className="devflow-project-workspace">
+      {/* Top Breadcrumb & Return Bar */}
+      <div className="devflow-project-workspace-topbar">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="devflow-project-back-btn text-xs text-muted-foreground hover:text-foreground gap-1.5 h-8 px-2.5"
+          aria-label="Back to Projects"
+        >
+          <ArrowLeft className="size-3.5" />
+          <span>Back to Projects</span>
+        </Button>
+      </div>
+
+      {/* Action / Error Banner */}
+      {actionError && (
+        <div className="devflow-task-alert is-error" role="alert">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{actionError}</span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            className="border-destructive/40 text-destructive hover:bg-destructive/10"
+            onClick={() => {
+              setActionError(null);
+              void refreshTasks();
+            }}
+          >
+            <RefreshCw className="size-3 mr-1" />
+            <span>Try Again</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Session Warning Banner */}
+      {sessionWarning && (
+        <div className="devflow-task-alert is-warning" role="alert">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{sessionWarning}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              className="devflow-alert-btn devflow-alert-btn-secondary"
+              onClick={() => {
+                window.location.hash = "sessions";
+              }}
+            >
+              View Session
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              className="devflow-alert-btn devflow-alert-btn-dismiss"
+              onClick={() => setSessionWarning(null)}
+              aria-label="Dismiss warning"
+            >
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Project Header Card */}
+      <div className="devflow-project-workspace-header">
+        <div className="devflow-project-workspace-header-main">
+          <div className="devflow-project-workspace-title-row">
+            <span
+              className="devflow-project-workspace-color-dot"
+              style={{ backgroundColor: projectColor }}
+            />
+            <h1 className="devflow-project-workspace-title">{project.name}</h1>
+
+            {project.status === "active" && (
+              <span className="devflow-project-status-badge is-active">
+                <Activity className="size-3" />
+                <span>Active</span>
+              </span>
+            )}
+            {project.status === "completed" && (
+              <span className="devflow-project-status-badge is-completed">
+                <CheckCircle2 className="size-3" />
+                <span>Completed</span>
+              </span>
+            )}
+            {project.status === "archived" && (
+              <span className="devflow-project-status-badge is-archived">
+                <Archive className="size-3" />
+                <span>Archived</span>
+              </span>
+            )}
+          </div>
+
+          {project.description ? (
+            <p className="devflow-project-workspace-description">
+              {project.description}
+            </p>
+          ) : (
+            <p className="devflow-project-workspace-description italic text-muted-foreground/60">
+              No description provided for this project.
+            </p>
+          )}
+
+          {/* GitHub Repository Context */}
+          {hasGitHub && (
+            <div className="devflow-project-workspace-github-row">
+              <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                <a
+                  href={
+                    project.github_url ||
+                    `https://github.com/${project.github_owner}/${project.github_repo}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="devflow-project-workspace-repo-pill"
+                  title="Open repository on GitHub"
+                >
+                  <GitHubIcon className="size-3.5 shrink-0" />
+                  <span className="truncate font-medium">
+                    {project.github_owner}/{project.github_repo}
+                  </span>
+                  <ExternalLink className="size-3 shrink-0 opacity-70" />
+                </a>
+
+                {project.github_default_branch && (
+                  <span className="devflow-project-workspace-branch-pill" title="Default branch">
+                    <GitBranch className="size-3 shrink-0 text-muted-foreground" />
+                    <span>{project.github_default_branch}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Header Actions */}
+        <div className="devflow-project-workspace-header-actions">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onEditProject(project)}
+            className="devflow-btn-secondary h-9 px-3 text-xs gap-1.5"
+            aria-label="Edit project"
+          >
+            <Pencil className="size-3.5" />
+            <span>Edit Project</span>
+          </Button>
+
+          <Button
+            type="button"
+            className="devflow-btn-primary h-9 px-4 text-xs gap-1.5"
+            onClick={() => setIsCreateTaskOpen(true)}
+          >
+            <Plus className="size-4" />
+            <span>New Task</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="devflow-project-metrics-grid" aria-label="Project metrics">
+        <div className="devflow-project-metric-card">
+          <div className="devflow-project-metric-label">Total Tasks</div>
+          <div className="devflow-project-metric-value">{metrics.totalTasks}</div>
+        </div>
+
+        <div className="devflow-project-metric-card is-todo">
+          <div className="devflow-project-metric-label flex items-center gap-1.5">
+            <Circle className="size-3 text-sky-500" />
+            <span>To Do</span>
+          </div>
+          <div className="devflow-project-metric-value">
+            {metrics.todoTasks}
+          </div>
+        </div>
+
+        <div className="devflow-project-metric-card is-in_progress">
+          <div className="devflow-project-metric-label flex items-center gap-1.5">
+            <Activity className="size-3 text-purple-500" />
+            <span>In Progress</span>
+          </div>
+          <div className="devflow-project-metric-value">
+            {metrics.inProgressTasks}
+          </div>
+        </div>
+
+        <div className="devflow-project-metric-card is-completed">
+          <div className="devflow-project-metric-label flex items-center gap-1.5">
+            <CheckCircle2 className="size-3 text-emerald-500" />
+            <span>Completed</span>
+          </div>
+          <div className="devflow-project-metric-value">
+            {metrics.completedTasks}
+          </div>
+        </div>
+
+        <div className="devflow-project-metric-card is-focus-time">
+          <div className="devflow-project-metric-label flex items-center gap-1.5">
+            <Clock className="size-3 text-accent" />
+            <span>Focus Time</span>
+          </div>
+          <div className="devflow-project-metric-value font-mono text-foreground">
+            {formatDuration(metrics.totalFocusSeconds)}
+          </div>
+        </div>
+      </div>
+
+      {/* Project Kanban Board Section */}
+      <div className="devflow-project-workspace-section">
+        <div className="devflow-project-workspace-section-header">
+          <div className="flex items-center gap-2">
+            <FolderKanban className="size-4 text-accent shrink-0" />
+            <h2 className="text-base font-bold text-foreground">Project Tasks</h2>
+            <span className="devflow-filter-count">{projectTasks.length}</span>
+          </div>
+        </div>
+
+        {projectTasks.length === 0 ? (
+          <div className="devflow-projects-empty">
+            <FolderKanban className="devflow-empty-icon" />
+            <h3 className="devflow-empty-title">No tasks in this project yet</h3>
+            <p className="devflow-empty-desc">
+              Create a task to start tracking development work for {project.name}.
+            </p>
+            <Button
+              type="button"
+              className="devflow-btn-primary mt-2 gap-1.5 h-8 px-3.5 text-xs"
+              onClick={() => setIsCreateTaskOpen(true)}
+            >
+              <Plus className="size-3.5" />
+              <span>Create Task</span>
+            </Button>
+          </div>
+        ) : (
+          <TaskBoard
+            tasks={projectTasks}
+            projectMap={projectMap}
+            subtasksMap={subtasksMap}
+            githubLinksMap={githubLinksMap}
+            taskTimeMap={taskTimeMap}
+            activeSession={activeSession}
+            onStartSession={handleStartSession}
+            onEdit={(t) => setEditingTask(t)}
+            onDelete={handleDeleteTask}
+            onSubtasksChange={updateTaskSubtasks}
+            onStatusChange={handleStatusChange}
+            deletingTaskId={deletingTaskId}
+          />
+        )}
+      </div>
+
+      {/* Recent Focus Sessions Section */}
+      <div className="devflow-project-workspace-section">
+        <div className="devflow-project-workspace-section-header">
+          <div className="flex items-center gap-2">
+            <Timer className="size-4 text-accent shrink-0" />
+            <h2 className="text-base font-bold text-foreground">Recent Focus Sessions</h2>
+            {metrics.recentSessions.length > 0 && (
+              <span className="devflow-filter-count">
+                {metrics.recentSessions.length}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {metrics.recentSessions.length === 0 ? (
+          <div className="devflow-project-workspace-sessions-empty">
+            <Timer className="size-5 text-muted-foreground opacity-60" />
+            <div className="flex flex-col gap-0.5">
+              <p className="text-xs font-medium text-foreground">
+                No focus sessions yet.
+              </p>
+              <p className="text-[11.5px] text-muted-foreground">
+                Start a focus session from a project task to begin tracking time.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="devflow-project-workspace-sessions-list">
+            {metrics.recentSessions.map((session) => (
+              <div
+                key={session.id}
+                className={`devflow-project-workspace-session-row ${
+                  session.status === "active" ? "is-active" : ""
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <span
+                    className={`devflow-project-session-status-dot is-${session.status}`}
+                  />
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-xs font-semibold text-foreground truncate">
+                      {session.title}
+                    </span>
+                    {session.taskTitle && session.taskTitle !== session.title && (
+                      <span className="text-[11px] text-muted-foreground truncate">
+                        Task: {session.taskTitle}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0 text-xs">
+                  <span className="font-mono font-semibold text-foreground">
+                    {formatDuration(session.durationSeconds)}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {formatDate(session.startedAt)}
+                  </span>
+                  <span
+                    className={`devflow-task-time-session-status-badge is-${session.status}`}
+                  >
+                    {session.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Create Task Modal pre-filled with this project */}
+      <CreateTaskModal
+        isOpen={isCreateTaskOpen}
+        projects={projects}
+        defaultProjectId={project.id}
+        onClose={() => setIsCreateTaskOpen(false)}
+        onSubmit={createTask}
+      />
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        task={editingTask}
+        projects={projects}
+        isOpen={Boolean(editingTask)}
+        onClose={() => setEditingTask(null)}
+        onSubmit={updateTask}
+        subtasks={editingTask ? subtasksMap[editingTask.id] || [] : []}
+        onSubtasksChange={updateTaskSubtasks}
+        githubLinks={editingTask ? githubLinksMap[editingTask.id] || [] : []}
+        onGitHubLinksChange={updateTaskGitHubLinks}
+        timeStats={editingTask ? taskTimeMap[editingTask.id] : undefined}
+        activeSession={activeSession}
+        onStartSession={handleStartSession}
+      />
+
+      {/* Task Completion Decision Prompt */}
+      {taskCompletionPrompt && (
+        <TaskCompletionPrompt
+          promptState={taskCompletionPrompt}
+          onKeepInProgress={() => setTaskCompletionPrompt(null)}
+          onMarkTaskDone={async () => {
+            if (taskCompletionPrompt) {
+              await updateTask(taskCompletionPrompt.taskId, { status: "completed" });
+              setTaskCompletionPrompt(null);
+            }
+          }}
+          isUpdatingTask={false}
+        />
+      )}
+    </div>
+  );
+}

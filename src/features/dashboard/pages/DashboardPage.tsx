@@ -22,7 +22,7 @@ import "../dashboard.css";
 export interface DashboardPageProps {
   userId: string;
   userName?: string;
-  onNavigate: (navId: NavItemId) => void;
+  onNavigate: (navId: NavItemId, param?: string) => void;
 }
 
 function formatCurrentDate(): string {
@@ -290,7 +290,7 @@ export function DashboardPage({
             projects={projects}
             tasks={tasks}
             onNavigateToProjects={() => onNavigate("projects")}
-            onNavigateToTasksWithProject={() => onNavigate("tasks")}
+            onNavigateToProjectWorkspace={(projectId) => onNavigate("projects", projectId)}
             onCreateProject={() => onNavigate("projects")}
           />
         </div>

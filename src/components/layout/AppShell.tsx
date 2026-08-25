@@ -52,11 +52,16 @@ const NAV_ITEMS: NavItem[] = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-function getNavFromHash(): NavItemId {
-  if (typeof window === "undefined") return "dashboard";
-  const hash = window.location.hash.replace(/^#\/?/, "").toLowerCase();
-  const matched = NAV_ITEMS.find((item) => item.id === hash);
-  return matched ? matched.id : "dashboard";
+function getNavFromHash(): { nav: NavItemId; projectId?: string } {
+  if (typeof window === "undefined") return { nav: "dashboard" };
+  const rawHash = window.location.hash.replace(/^#\/?/, "");
+  const [navPart, idPart] = rawHash.split("/");
+  const normalizedNav = (navPart || "").toLowerCase();
+  const matched = NAV_ITEMS.find((item) => item.id === normalizedNav);
+  return {
+    nav: matched ? matched.id : "dashboard",
+    projectId: (normalizedNav === "projects" || normalizedNav === "project") && idPart ? idPart : undefined,
+  };
 }
 
 function getGreetingName(email?: string, name?: string): string {
@@ -84,12 +89,16 @@ export function AppShell({
   onSignOut,
   children,
 }: AppShellProps) {
-  const [activeNav, setActiveNav] = useState<NavItemId>(() => getNavFromHash());
+  const [navState, setNavState] = useState<{ nav: NavItemId; projectId?: string }>(() =>
+    getNavFromHash()
+  );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const activeNav = navState.nav;
 
   useEffect(() => {
     const handleLocationChange = () => {
-      setActiveNav(getNavFromHash());
+      setNavState(getNavFromHash());
     };
 
     window.addEventListener("hashchange", handleLocationChange);
@@ -100,9 +109,13 @@ export function AppShell({
     };
   }, []);
 
-  const handleSelectNav = (id: NavItemId) => {
-    setActiveNav(id);
-    window.history.pushState(null, "", `#${id}`);
+  const handleSelectNav = (id: NavItemId, param?: string) => {
+    setNavState({ nav: id, projectId: param });
+    if (id === "projects" && param) {
+      window.history.pushState(null, "", `#projects/${param}`);
+    } else {
+      window.history.pushState(null, "", `#${id}`);
+    }
     setMobileMenuOpen(false);
   };
 
@@ -216,7 +229,19 @@ export function AppShell({
             ) : activeNav === "sessions" && userId ? (
               <SessionsPage userId={userId} />
             ) : activeNav === "projects" && userId ? (
-              <ProjectsPage userId={userId} />
+              <ProjectsPage
+                userId={userId}
+                selectedProjectId={navState.projectId || null}
+                onSelectProject={(projId) => {
+                  if (projId) {
+                    setNavState({ nav: "projects", projectId: projId });
+                    window.history.pushState(null, "", `#projects/${projId}`);
+                  } else {
+                    setNavState({ nav: "projects", projectId: undefined });
+                    window.history.pushState(null, "", `#projects`);
+                  }
+                }}
+              />
             ) : activeNav === "tasks" && userId ? (
               <TasksPage userId={userId} />
             ) : (

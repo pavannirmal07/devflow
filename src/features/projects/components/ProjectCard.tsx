@@ -7,6 +7,7 @@ export interface ProjectCardProps {
   project: DevProject;
   onEdit: (project: DevProject) => void;
   onDelete: (projectId: string) => Promise<void>;
+  onSelect?: (project: DevProject) => void;
   isDeleting?: boolean;
 }
 
@@ -23,11 +24,13 @@ export function ProjectCard({
   project,
   onEdit,
   onDelete,
+  onSelect,
   isDeleting = false,
 }: ProjectCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     await onDelete(project.id);
     setConfirmDelete(false);
   };
@@ -35,7 +38,18 @@ export function ProjectCard({
   const projectColor = project.color || "#a855f7";
 
   return (
-    <div className="devflow-project-card">
+    <div
+      className={`devflow-project-card ${onSelect ? "is-clickable" : ""}`}
+      onClick={() => onSelect?.(project)}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (onSelect && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onSelect(project);
+        }
+      }}
+    >
       <div
         className="devflow-project-top-strip"
         style={{ backgroundColor: projectColor }}
@@ -89,6 +103,7 @@ export function ProjectCard({
                 rel="noopener noreferrer"
                 className="devflow-project-github-link"
                 title={project.github_url}
+                onClick={(e) => e.stopPropagation()}
               >
                 <GitBranch className="size-3.5 shrink-0" />
                 <span>Repository</span>
@@ -102,7 +117,10 @@ export function ProjectCard({
             )}
           </div>
 
-          <div className="devflow-project-card-actions">
+          <div
+            className="devflow-project-card-actions"
+            onClick={(e) => e.stopPropagation()}
+          >
             {confirmDelete ? (
               <div className="devflow-project-delete-confirm">
                 <span className="text-xs text-destructive font-medium">Delete?</span>
@@ -119,7 +137,10 @@ export function ProjectCard({
                   type="button"
                   variant="ghost"
                   size="xs"
-                  onClick={() => setConfirmDelete(false)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDelete(false);
+                  }}
                   disabled={isDeleting}
                 >
                   No
@@ -131,7 +152,10 @@ export function ProjectCard({
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  onClick={() => onEdit(project)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(project);
+                  }}
                   aria-label="Edit project"
                   title="Edit project"
                 >
@@ -142,7 +166,10 @@ export function ProjectCard({
                   variant="ghost"
                   size="icon-xs"
                   className="text-muted-foreground hover:text-destructive"
-                  onClick={() => setConfirmDelete(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDelete(true);
+                  }}
                   aria-label="Delete project"
                   title="Delete project"
                 >

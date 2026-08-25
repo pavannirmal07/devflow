@@ -8,7 +8,7 @@ export interface DashboardProjectStreamsProps {
   projects: DevProject[];
   tasks: DevTask[];
   onNavigateToProjects: () => void;
-  onNavigateToTasksWithProject: (projectId: string) => void;
+  onNavigateToProjectWorkspace: (projectId: string) => void;
   onCreateProject: () => void;
 }
 
@@ -16,7 +16,7 @@ export function DashboardProjectStreams({
   projects,
   tasks,
   onNavigateToProjects,
-  onNavigateToTasksWithProject,
+  onNavigateToProjectWorkspace,
   onCreateProject,
 }: DashboardProjectStreamsProps) {
   const activeProjects = projects.filter((p) => p.status === "active");
@@ -84,12 +84,12 @@ export function DashboardProjectStreams({
               <div
                 key={project.id}
                 className="devflow-dashboard-project-item"
-                onClick={() => onNavigateToTasksWithProject(project.id)}
+                onClick={() => onNavigateToProjectWorkspace(project.id)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
-                    onNavigateToTasksWithProject(project.id);
+                    onNavigateToProjectWorkspace(project.id);
                   }
                 }}
               >

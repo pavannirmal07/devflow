@@ -8,6 +8,7 @@ import type { CreateTaskInput, DevTask, TaskPriority, TaskStatus } from "../type
 export interface CreateTaskModalProps {
   isOpen: boolean;
   projects: DevProject[];
+  defaultProjectId?: string | null;
   onClose: () => void;
   onSubmit: (
     input: CreateTaskInput
@@ -17,6 +18,7 @@ export interface CreateTaskModalProps {
 export function CreateTaskModal({
   isOpen,
   projects,
+  defaultProjectId,
   onClose,
   onSubmit,
 }: CreateTaskModalProps) {
@@ -25,6 +27,7 @@ export function CreateTaskModal({
   return (
     <CreateTaskModalForm
       projects={projects}
+      defaultProjectId={defaultProjectId}
       onClose={onClose}
       onSubmit={onSubmit}
     />
@@ -33,6 +36,7 @@ export function CreateTaskModal({
 
 interface CreateTaskModalFormProps {
   projects: DevProject[];
+  defaultProjectId?: string | null;
   onClose: () => void;
   onSubmit: (
     input: CreateTaskInput
@@ -41,12 +45,13 @@ interface CreateTaskModalFormProps {
 
 function CreateTaskModalForm({
   projects,
+  defaultProjectId,
   onClose,
   onSubmit,
 }: CreateTaskModalFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [projectId, setProjectId] = useState<string>("");
+  const [projectId, setProjectId] = useState<string>(defaultProjectId || "");
   const [status, setStatus] = useState<TaskStatus>("todo");
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [dueDate, setDueDate] = useState("");
