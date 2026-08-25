@@ -21,3 +21,5 @@ export interface CreateSessionInput {
   description?: string | null;
   task_id?: string | null;
 }
+
+export type { TaskTimeSessionSummary, TaskTimeStats } from "../tasks/types";

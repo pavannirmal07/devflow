@@ -1,13 +1,14 @@
 .devflow-shell {
   display: flex;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   width: 100%;
   background: var(--bg);
   color: var(--text);
   text-align: left;
   position: relative;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Backdrop for Mobile Navigation Overlay */
@@ -22,6 +23,9 @@
 /* Sidebar Navigation */
 .devflow-sidebar {
   width: 240px;
+  height: 100%;
+  max-height: 100vh;
+  max-height: 100dvh;
   flex-shrink: 0;
   background: var(--bg);
   border-right: 1px solid var(--border);
@@ -64,6 +68,12 @@
   padding: 16px 12px;
   flex: 1;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.devflow-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .devflow-nav-list {
@@ -144,6 +154,10 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 
 /* Top Header */
@@ -173,6 +187,54 @@
   font-weight: 600;
   margin: 0;
   color: var(--text-h);
+}
+
+.devflow-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.devflow-header-command-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.devflow-header-command-btn:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--code-bg));
+  border-color: var(--accent-border);
+  color: var(--text-h);
+}
+
+.devflow-header-command-text {
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.devflow-header-command-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  line-height: 1.2;
 }
 
 /* Main Content Body */
@@ -260,6 +322,18 @@
 
   .devflow-header {
     padding: 0 16px;
+  }
+
+  .devflow-header-command-text,
+  .devflow-header-command-kbd {
+    display: none;
+  }
+
+  .devflow-header-command-btn {
+    padding: 0 8px;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
   }
 
   .devflow-main {

@@ -3,6 +3,7 @@ import { Plus, FolderKanban, AlertCircle, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "../useProjects";
 import { ProjectCard } from "../components/ProjectCard";
+import { ProjectWorkspace } from "../components/ProjectWorkspace";
 import { CreateProjectModal } from "../components/CreateProjectModal";
 import { EditProjectModal } from "../components/EditProjectModal";
 import type { DevProject, ProjectStatus } from "../types";
@@ -10,11 +11,19 @@ import "../projects.css";
 
 export interface ProjectsPageProps {
   userId: string;
+  selectedProjectId?: string | null;
+  highlightTaskId?: string | null;
+  onSelectProject?: (projectId: string | null) => void;
 }
 
 type FilterStatus = "all" | ProjectStatus;
 
-export function ProjectsPage({ userId }: ProjectsPageProps) {
+export function ProjectsPage({
+  userId,
+  selectedProjectId: propSelectedProjectId,
+  highlightTaskId,
+  onSelectProject,
+}: ProjectsPageProps) {
   const {
     projects,
     loading,
@@ -30,6 +39,16 @@ export function ProjectsPage({ userId }: ProjectsPageProps) {
   const [editingProject, setEditingProject] = useState<DevProject | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [internalSelectedProjectId, setInternalSelectedProjectId] = useState<
+    string | null
+  >(null);
+
+  const activeSelectedId =
+    propSelectedProjectId !== undefined
+      ? propSelectedProjectId
+      : internalSelectedProjectId;
+
+  const currentProject = projects.find((p) => p.id === activeSelectedId) || null;
 
   const activeCount = projects.filter((p) => p.status === "active").length;
   const completedCount = projects.filter((p) => p.status === "completed").length;
@@ -48,8 +67,45 @@ export function ProjectsPage({ userId }: ProjectsPageProps) {
 
     if (deleteErr) {
       setActionError(deleteErr.message);
+    } else if (activeSelectedId === projectId) {
+      setInternalSelectedProjectId(null);
+      onSelectProject?.(null);
     }
   };
+
+  const handleSelectProject = (project: DevProject) => {
+    setInternalSelectedProjectId(project.id);
+    onSelectProject?.(project.id);
+  };
+
+  const handleBackToProjects = () => {
+    setInternalSelectedProjectId(null);
+    onSelectProject?.(null);
+  };
+
+  // If a project is selected, render its dedicated ProjectWorkspace
+  if (currentProject) {
+    return (
+      <div className="devflow-projects-page is-workspace-active">
+        <ProjectWorkspace
+          userId={userId}
+          project={currentProject}
+          projects={projects}
+          highlightTaskId={highlightTaskId}
+          onBack={handleBackToProjects}
+          onEditProject={(p) => setEditingProject(p)}
+        />
+
+        {/* Edit Project Modal */}
+        <EditProjectModal
+          project={editingProject}
+          isOpen={Boolean(editingProject)}
+          onClose={() => setEditingProject(null)}
+          onSubmit={updateProject}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="devflow-projects-page">
@@ -58,7 +114,7 @@ export function ProjectsPage({ userId }: ProjectsPageProps) {
         <div className="devflow-projects-title-group">
           <h1>Projects</h1>
           <p className="devflow-projects-subtitle">
-            Organize and track your active codebases and repositories.
+            Organize and track your active codebases, workspaces, and repositories.
           </p>
         </div>
 
@@ -111,12 +167,18 @@ export function ProjectsPage({ userId }: ProjectsPageProps) {
       )}
 
       {/* Filter Bar */}
-      <div className="devflow-projects-filter-bar" role="tablist" aria-label="Filter projects by status">
+      <div
+        className="devflow-projects-filter-bar"
+        role="tablist"
+        aria-label="Filter projects by status"
+      >
         <button
           type="button"
           role="tab"
           aria-selected={filterStatus === "all"}
-          className={`devflow-filter-pill ${filterStatus === "all" ? "is-active" : ""}`}
+          className={`devflow-filter-pill ${
+            filterStatus === "all" ? "is-active" : ""
+          }`}
           onClick={() => setFilterStatus("all")}
         >
           <span>All</span>
@@ -126,7 +188,9 @@ export function ProjectsPage({ userId }: ProjectsPageProps) {
           type="button"
           role="tab"
           aria-selected={filterStatus === "active"}
-          className={`devflow-filter-pill ${filterStatus === "active" ? "is-active" : ""}`}
+          className={`devflow-filter-pill ${
+            filterStatus === "active" ? "is-active" : ""
+          }`}
           onClick={() => setFilterStatus("active")}
         >
           <span>Active</span>
@@ -136,7 +200,9 @@ export function ProjectsPage({ userId }: ProjectsPageProps) {
           type="button"
           role="tab"
           aria-selected={filterStatus === "completed"}
-          className={`devflow-filter-pill ${filterStatus === "completed" ? "is-active" : ""}`}
+          className={`devflow-filter-pill ${
+            filterStatus === "completed" ? "is-active" : ""
+          }`}
           onClick={() => setFilterStatus("completed")}
         >
           <span>Completed</span>
@@ -146,7 +212,9 @@ export function ProjectsPage({ userId }: ProjectsPageProps) {
           type="button"
           role="tab"
           aria-selected={filterStatus === "archived"}
-          className={`devflow-filter-pill ${filterStatus === "archived" ? "is-active" : ""}`}
+          className={`devflow-filter-pill ${
+            filterStatus === "archived" ? "is-active" : ""
+          }`}
           onClick={() => setFilterStatus("archived")}
         >
           <span>Archived</span>
@@ -174,6 +242,7 @@ export function ProjectsPage({ userId }: ProjectsPageProps) {
             <ProjectCard
               key={project.id}
               project={project}
+              onSelect={handleSelectProject}
               onEdit={(p) => setEditingProject(p)}
               onDelete={handleDeleteProject}
               isDeleting={deletingId === project.id}

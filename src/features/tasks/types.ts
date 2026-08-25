@@ -2,6 +2,9 @@ export type TaskStatus = "todo" | "in_progress" | "completed";
 
 export type TaskPriority = "low" | "medium" | "high" | "critical";
 
+export type TaskDueDateFilter = "all" | "today" | "this_week" | "overdue";
+
+
 export interface DevTask {
   id: string;
   user_id: string;
@@ -60,3 +63,22 @@ export interface SubtaskProgress {
   completed: number;
   percent: number;
 }
+
+export interface TaskTimeSessionSummary {
+  id: string;
+  title: string;
+  duration_seconds: number | null;
+  accumulated_seconds: number;
+  status: import("../sessions/types").SessionStatus;
+  started_at: string;
+  ended_at: string | null;
+  last_resumed_at?: string | null;
+}
+
+export interface TaskTimeStats {
+  totalSeconds: number;
+  sessionCount: number;
+  sessions: TaskTimeSessionSummary[];
+}
+
+export type { TaskGitHubLink, TaskGitHubLinkType, CreateGitHubLinkInput } from "../github/types";

@@ -132,10 +132,33 @@
   background: color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
-.devflow-tasks-project-filter {
-  min-width: 170px;
-  max-width: 240px;
+.devflow-tasks-secondary-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
+
+.devflow-tasks-date-filter {
+  min-width: 150px;
+  max-width: 210px;
+}
+
+.devflow-tasks-project-filter {
+  min-width: 160px;
+  max-width: 230px;
+}
+
+.devflow-task-select.is-overdue {
+  border-color: rgba(244, 63, 94, 0.45);
+  color: #f43f5e;
+}
+
+.devflow-task-select.is-today {
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #f59e0b;
+}
+
 
 /* Tasks Grid */
 .devflow-tasks-grid {
@@ -173,6 +196,33 @@
   border-color: color-mix(in srgb, var(--border) 60%, var(--accent));
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
+}
+
+.devflow-task-card.is-highlighted {
+  border-color: var(--accent) !important;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent), 0 8px 24px rgba(0, 0, 0, 0.18);
+  animation: devflow-task-pulse-highlight 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes devflow-task-pulse-highlight {
+  0% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 45%, transparent), 0 12px 28px rgba(0, 0, 0, 0.22);
+  }
+  30% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent), 0 8px 24px rgba(0, 0, 0, 0.18);
+  }
+  75% {
+    outline-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+  100% {
+    outline-color: transparent;
+    box-shadow: var(--shadow);
+  }
 }
 
 .devflow-task-card-body {
@@ -296,7 +346,8 @@
   line-height: 1.35;
 }
 
-.devflow-task-card-desc {
+.devflow-task-card-desc,
+.devflow-task-card-description {
   font-size: 13.5px;
   color: var(--text);
   margin: 0;
@@ -307,6 +358,65 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
+}
+
+/* Time Row in Task Card */
+.devflow-task-card-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.devflow-task-time-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--code-bg) 80%, var(--accent-bg));
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.devflow-task-time-pill svg,
+.devflow-task-time-pill .lucide-clock {
+  flex-shrink: 0;
+}
+
+.devflow-task-live-session-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.devflow-task-live-session-badge.is-active {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.devflow-task-live-session-badge.is-paused {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.devflow-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .devflow-task-card-footer {
@@ -333,10 +443,28 @@
   display: inline-flex;
   align-items: center;
   gap: 4.5px;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-h);
   font-weight: 500;
+  padding: 1.5px 6px;
+  border-radius: 5px;
+  transition: all 0.15s ease;
 }
+
+.devflow-task-due-date.is-overdue {
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  font-weight: 600;
+}
+
+.devflow-task-due-date.is-today {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  font-weight: 600;
+}
+
 
 .devflow-task-card-actions {
   display: flex;
@@ -367,27 +495,32 @@
   padding: 16px;
   z-index: 50;
   animation: devflow-fade-in 0.15s ease-out;
+  overflow: hidden;
 }
 
 .devflow-task-modal-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 540px;
+  max-height: min(90vh, 860px);
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--bg);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 24px;
+  padding: 24px 20px 20px 24px;
   animation: devflow-scale-up 0.18s ease-out;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .devflow-task-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
+  padding-right: 4px;
+  margin-bottom: 14px;
 }
 
 .devflow-task-modal-title {
@@ -397,10 +530,41 @@
   margin: 0;
 }
 
+.devflow-task-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .devflow-task-modal-fields {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 14px;
+  padding-left: 2px;
+  padding-bottom: 8px;
+}
+
+.devflow-task-modal-fields::-webkit-scrollbar {
+  width: 5px;
+}
+
+.devflow-task-modal-fields::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.devflow-task-modal-fields::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.devflow-task-modal-fields::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--border) 60%, var(--text));
 }
 
 .devflow-field-group {
@@ -462,7 +626,11 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: 14px;
+  padding-top: 14px;
+  padding-right: 4px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 /* Empty State */
@@ -1078,4 +1246,743 @@
 
 .devflow-quick-subtasks-manage-btn:hover {
   color: #a855f7;
+}
+
+/* ============================================================================
+   Task-Level Time Tracking Styles
+   ============================================================================ */
+
+/* Task Card Time Badge */
+.devflow-task-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(168, 85, 247, 0.08);
+  color: var(--text-h);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  transition: all 0.2s ease;
+}
+
+.devflow-task-time-badge.is-live {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+}
+
+.devflow-task-time-badge.is-paused {
+  background: rgba(100, 116, 139, 0.12);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.25);
+}
+
+/* Time Tracked Section in EditTaskModal */
+.devflow-task-time-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.devflow-task-time-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.devflow-task-time-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4.5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.devflow-task-time-paused-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 12px;
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.devflow-task-time-total-pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a855f7;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+
+.devflow-task-time-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 10px;
+}
+
+@media (max-width: 580px) {
+  .devflow-task-time-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .devflow-task-time-action-card {
+    grid-column: span 2;
+  }
+}
+
+.devflow-task-time-stat-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.devflow-task-time-stat-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.devflow-task-time-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+  line-height: 1.2;
+}
+
+.devflow-task-time-action-card {
+  display: flex;
+  align-items: stretch;
+}
+
+.devflow-task-time-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--code-bg) 60%, transparent);
+}
+
+.devflow-task-time-history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.devflow-task-time-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.devflow-task-time-session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  transition: border-color 0.15s ease;
+}
+
+.devflow-task-time-session-row.is-active {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.devflow-task-time-session-row.is-paused {
+  border-color: rgba(100, 116, 139, 0.35);
+}
+
+.devflow-task-time-session-status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.devflow-task-time-session-status-badge.is-completed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.devflow-task-time-session-status-badge.is-active {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+}
+
+/* ============================================================================
+   Task-Level Time Tracking Styles
+   ============================================================================ */
+
+/* Task Card Time Badge */
+.devflow-task-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(168, 85, 247, 0.08);
+  color: var(--text-h);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  transition: all 0.2s ease;
+}
+
+.devflow-task-time-badge.is-live {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+}
+
+.devflow-task-time-badge.is-paused {
+  background: rgba(100, 116, 139, 0.12);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.25);
+}
+
+.devflow-task-subtasks-summary-btn,
+.devflow-task-subtasks-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.devflow-task-subtasks-summary-btn:hover,
+.devflow-task-subtasks-btn:hover {
+  background: color-mix(in srgb, var(--code-bg) 80%, var(--accent-bg));
+  border-color: color-mix(in srgb, var(--border) 60%, var(--accent));
+}
+
+.devflow-task-subtasks-summary-btn:focus-visible,
+.devflow-task-subtasks-btn:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 1px;
+}
+
+.devflow-task-subtasks-summary-btn.is-active,
+.devflow-task-subtasks-btn.is-active {
+  border-color: #a855f7;
+  background: color-mix(in srgb, var(--code-bg) 75%, var(--accent-bg));
+}
+
+.devflow-task-subtasks-btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.devflow-task-subtasks-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.devflow-task-subtasks-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.devflow-task-subtasks-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 15%, transparent);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+
+.devflow-task-subtasks-mini-progress {
+  width: 100%;
+  height: 4px;
+  background: color-mix(in srgb, var(--text) 15%, transparent);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.devflow-task-subtasks-mini-progress-fill {
+  height: 100%;
+  background: #a855f7;
+  border-radius: 4px;
+  transition: width 0.25s ease;
+}
+
+.devflow-task-subtasks-mini-progress-fill.is-complete {
+  background: #22c55e;
+}
+
+/* Time Tracked Section in EditTaskModal */
+.devflow-task-time-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.devflow-task-time-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.devflow-task-time-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4.5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.devflow-task-time-paused-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 12px;
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.devflow-task-time-total-pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a855f7;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+
+.devflow-task-time-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 10px;
+}
+
+@media (max-width: 580px) {
+  .devflow-task-time-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .devflow-task-time-action-card {
+    grid-column: span 2;
+  }
+}
+
+.devflow-task-time-stat-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.devflow-task-time-stat-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.devflow-task-time-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+  line-height: 1.2;
+}
+
+.devflow-task-time-action-card {
+  display: flex;
+  align-items: stretch;
+}
+
+.devflow-task-time-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--code-bg) 60%, transparent);
+}
+
+.devflow-task-time-history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.devflow-task-time-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.devflow-task-time-session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  transition: border-color 0.15s ease;
+}
+
+.devflow-task-time-session-row.is-active {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.devflow-task-time-session-row.is-paused {
+  border-color: rgba(100, 116, 139, 0.35);
+}
+
+.devflow-task-time-session-status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.devflow-task-time-session-status-badge.is-completed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.devflow-task-time-session-status-badge.is-active {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+}
+
+.devflow-task-time-session-status-badge.is-paused {
+  background: rgba(100, 116, 139, 0.14);
+  color: #94a3b8;
+}
+
+/* ============================================================================
+   Phase 1D Kanban Board Styles & Distinct Stage Themes
+   ============================================================================ */
+
+.devflow-tasks-page.is-board-view {
+  max-width: 1350px;
+}
+
+/* List / Board View Toggle */
+.devflow-tasks-view-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.devflow-view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.devflow-view-toggle-btn:hover:not(.is-active) {
+  color: var(--text-h);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.devflow-view-toggle-btn.is-active {
+  background: var(--bg);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.dark .devflow-view-toggle-btn.is-active {
+  background: color-mix(in srgb, var(--code-bg) 80%, var(--bg));
+  color: #c084fc;
+}
+
+/* Kanban Board Layout */
+.devflow-task-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+  width: 100%;
+}
+
+/* Column Base */
+.devflow-kanban-column {
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 460px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* 1. To Do Stage */
+.devflow-kanban-column.is-stage-todo {
+  background: rgba(14, 165, 233, 0.035);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-top: 3.5px solid #0ea5e9;
+}
+
+.devflow-kanban-column.is-stage-todo .devflow-kanban-column-header {
+  border-bottom: 1px solid rgba(14, 165, 233, 0.18);
+}
+
+.devflow-kanban-column.is-stage-todo .devflow-kanban-column-count {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+}
+
+.devflow-kanban-column.is-stage-todo.is-drag-over {
+  background: rgba(14, 165, 233, 0.09);
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.35), 0 8px 24px rgba(14, 165, 233, 0.12);
+}
+
+.dark .devflow-kanban-column.is-stage-todo {
+  background: rgba(14, 165, 233, 0.05);
+  border-color: rgba(14, 165, 233, 0.25);
+  border-top-color: #38bdf8;
+}
+
+.dark .devflow-kanban-column.is-stage-todo .devflow-kanban-column-count {
+  background: rgba(14, 165, 233, 0.18);
+  color: #38bdf8;
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+/* 2. In Progress Stage */
+.devflow-kanban-column.is-stage-in_progress {
+  background: rgba(168, 85, 247, 0.035);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-top: 3.5px solid #a855f7;
+}
+
+.devflow-kanban-column.is-stage-in_progress .devflow-kanban-column-header {
+  border-bottom: 1px solid rgba(168, 85, 247, 0.18);
+}
+
+.devflow-kanban-column.is-stage-in_progress .devflow-kanban-column-count {
+  background: rgba(168, 85, 247, 0.1);
+  color: #9333ea;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+
+.devflow-kanban-column.is-stage-in_progress.is-drag-over {
+  background: rgba(168, 85, 247, 0.09);
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.35), 0 8px 24px rgba(168, 85, 247, 0.12);
+}
+
+.dark .devflow-kanban-column.is-stage-in_progress {
+  background: rgba(168, 85, 247, 0.05);
+  border-color: rgba(168, 85, 247, 0.25);
+  border-top-color: #c084fc;
+}
+
+.dark .devflow-kanban-column.is-stage-in_progress .devflow-kanban-column-count {
+  background: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+/* 3. Completed Stage */
+.devflow-kanban-column.is-stage-completed {
+  background: rgba(34, 197, 94, 0.035);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-top: 3.5px solid #22c55e;
+}
+
+.devflow-kanban-column.is-stage-completed .devflow-kanban-column-header {
+  border-bottom: 1px solid rgba(34, 197, 94, 0.18);
+}
+
+.devflow-kanban-column.is-stage-completed .devflow-kanban-column-count {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.devflow-kanban-column.is-stage-completed.is-drag-over {
+  background: rgba(34, 197, 94, 0.09);
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35), 0 8px 24px rgba(34, 197, 94, 0.12);
+}
+
+.dark .devflow-kanban-column.is-stage-completed {
+  background: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.25);
+  border-top-color: #4ade80;
+}
+
+.dark .devflow-kanban-column.is-stage-completed .devflow-kanban-column-count {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+/* Headers & Count Badges */
+.devflow-kanban-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+}
+
+.devflow-kanban-column-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.devflow-kanban-column-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.devflow-kanban-column-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.devflow-kanban-column-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 140px;
+}
+
+.devflow-kanban-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--code-bg) 30%, transparent);
+  text-align: center;
+}
+
+/* Draggable Card States */
+.devflow-task-card[draggable="true"] {
+  cursor: grab;
+}
+
+.devflow-task-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.devflow-task-card.is-dragging {
+  opacity: 0.45;
+  transform: scale(0.98);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .devflow-task-board {
+    grid-template-columns: repeat(3, minmax(280px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 12px;
+    scroll-snap-type: x proximity;
+  }
+
+  .devflow-kanban-column {
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .devflow-task-board {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .devflow-kanban-column {
+    min-height: auto;
+  }
 }

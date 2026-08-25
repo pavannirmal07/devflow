@@ -11,12 +11,17 @@ import {
   Menu,
   X,
   LogOut,
+  Search,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { SessionsPage } from "@/features/sessions";
-import { ProjectsPage } from "@/features/projects";
-import { TasksPage } from "@/features/tasks";
+import { DashboardPage } from "@/features/dashboard";
+import { SessionsPage, useSessions } from "@/features/sessions";
+import { ProjectsPage, useProjects } from "@/features/projects";
+import { TasksPage, useTasks } from "@/features/tasks";
+import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
+import { CommandPalette } from "@/components/command";
+import type { DevTask } from "@/features/tasks/types";
 import "./AppShell.css";
 
 export interface AppShellProps {
@@ -50,11 +55,28 @@ const NAV_ITEMS: NavItem[] = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-function getNavFromHash(): NavItemId {
-  if (typeof window === "undefined") return "dashboard";
-  const hash = window.location.hash.replace(/^#\/?/, "").toLowerCase();
-  const matched = NAV_ITEMS.find((item) => item.id === hash);
-  return matched ? matched.id : "dashboard";
+function getNavFromHash(): { nav: NavItemId; projectId?: string; taskId?: string } {
+  if (typeof window === "undefined") return { nav: "dashboard" };
+  const rawHash = window.location.hash.replace(/^#\/?/, "");
+  const [pathPart, queryPart] = rawHash.split("?");
+  const [navPart, idPart] = (pathPart || "").split("/");
+  const normalizedNav = (navPart || "").toLowerCase();
+  const matched = NAV_ITEMS.find((item) => item.id === normalizedNav);
+
+  let taskId: string | undefined;
+  if (queryPart) {
+    const params = new URLSearchParams(queryPart);
+    taskId = params.get("task") || undefined;
+  }
+
+  return {
+    nav: matched ? matched.id : "dashboard",
+    projectId:
+      (normalizedNav === "projects" || normalizedNav === "project") && idPart
+        ? idPart
+        : undefined,
+    taskId,
+  };
 }
 
 function getGreetingName(email?: string, name?: string): string {
@@ -82,12 +104,25 @@ export function AppShell({
   onSignOut,
   children,
 }: AppShellProps) {
-  const [activeNav, setActiveNav] = useState<NavItemId>(() => getNavFromHash());
+  const [navState, setNavState] = useState<{
+    nav: NavItemId;
+    projectId?: string;
+    taskId?: string;
+  }>(() => getNavFromHash());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+
+  // Global state hooks for command palette
+  const { projects } = useProjects(userId);
+  const { tasks, createTask, refreshTasks } = useTasks(userId);
+  const { activeSession, startSession } = useSessions(userId);
+
+  const activeNav = navState.nav;
 
   useEffect(() => {
     const handleLocationChange = () => {
-      setActiveNav(getNavFromHash());
+      setNavState(getNavFromHash());
     };
 
     window.addEventListener("hashchange", handleLocationChange);
@@ -98,14 +133,65 @@ export function AppShell({
     };
   }, []);
 
-  const handleSelectNav = (id: NavItemId) => {
-    setActiveNav(id);
-    window.history.pushState(null, "", `#${id}`);
+  // Global Keyboard Shortcut: Ctrl+K / Cmd+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+        const target = e.target as HTMLElement | null;
+        const isEditable =
+          target &&
+          (target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.isContentEditable);
+
+        if (!isEditable || (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          setIsCommandPaletteOpen((prev) => !prev);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const handleSelectNav = (id: NavItemId, param?: string, taskId?: string) => {
+    setNavState({ nav: id, projectId: param, taskId });
+    let newHash = `#${id}`;
+    if (id === "projects" && param) {
+      newHash = `#projects/${param}`;
+      if (taskId) {
+        newHash += `?task=${encodeURIComponent(taskId)}`;
+      }
+    } else if (id === "tasks" && taskId) {
+      newHash += `?task=${encodeURIComponent(taskId)}`;
+    }
+    window.history.pushState(null, "", newHash);
     setMobileMenuOpen(false);
+  };
+
+  const handleStartFocusFromPalette = async (task: DevTask) => {
+    if (activeSession) return;
+    const { session } = await startSession({
+      title: task.title,
+      description: task.description || undefined,
+      task_id: task.id,
+    });
+    if (session) {
+      await refreshTasks();
+      if (task.project_id) {
+        handleSelectNav("projects", task.project_id, task.id);
+      } else {
+        handleSelectNav("tasks", undefined, task.id);
+      }
+    }
   };
 
   const activeItem = NAV_ITEMS.find((item) => item.id === activeNav);
   const displayName = getGreetingName(userEmail, userName);
+  const isMac =
+    typeof navigator !== "undefined" &&
+    navigator.platform?.toUpperCase().includes("MAC");
 
   return (
     <div className="devflow-shell">
@@ -200,17 +286,56 @@ export function AppShell({
               {activeItem ? activeItem.label : "Dashboard"}
             </h1>
           </div>
+
+          <div className="devflow-header-right">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="devflow-header-command-btn"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              aria-label="Open command palette (Ctrl+K)"
+            >
+              <Search className="size-3.5 text-muted-foreground shrink-0" />
+              <span className="devflow-header-command-text">Search or jump to...</span>
+              <kbd className="devflow-header-command-kbd">
+                <span>{isMac ? "⌘" : "Ctrl "}</span>K
+              </kbd>
+            </Button>
+          </div>
         </header>
 
         {/* Main Content Area */}
         <main className="devflow-main">
           {children ||
-            (activeNav === "sessions" && userId ? (
+            (activeNav === "dashboard" && userId ? (
+              <DashboardPage
+                userId={userId}
+                userName={userName}
+                onNavigate={handleSelectNav}
+              />
+            ) : activeNav === "sessions" && userId ? (
               <SessionsPage userId={userId} />
             ) : activeNav === "projects" && userId ? (
-              <ProjectsPage userId={userId} />
+              <ProjectsPage
+                userId={userId}
+                selectedProjectId={navState.projectId || null}
+                highlightTaskId={navState.taskId || null}
+                onSelectProject={(projId) => {
+                  if (projId) {
+                    setNavState({ nav: "projects", projectId: projId, taskId: undefined });
+                    window.history.pushState(null, "", `#projects/${projId}`);
+                  } else {
+                    setNavState({ nav: "projects", projectId: undefined, taskId: undefined });
+                    window.history.pushState(null, "", `#projects`);
+                  }
+                }}
+              />
             ) : activeNav === "tasks" && userId ? (
-              <TasksPage userId={userId} />
+              <TasksPage
+                userId={userId}
+                highlightTaskId={navState.taskId || null}
+              />
             ) : (
               <div className="devflow-placeholder-card">
                 <h2>{activeItem?.label}</h2>
@@ -222,6 +347,26 @@ export function AppShell({
             ))}
         </main>
       </div>
+
+      {/* Global Command Palette */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        tasks={tasks}
+        projects={projects}
+        activeSession={activeSession}
+        onNavigate={handleSelectNav}
+        onStartFocus={handleStartFocusFromPalette}
+        onCreateTask={() => setIsCreateTaskOpen(true)}
+      />
+
+      {/* Global Create Task Modal */}
+      <CreateTaskModal
+        isOpen={isCreateTaskOpen}
+        projects={projects}
+        onClose={() => setIsCreateTaskOpen(false)}
+        onSubmit={createTask}
+      />
     </div>
   );
 }

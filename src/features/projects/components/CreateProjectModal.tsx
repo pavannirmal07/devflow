@@ -116,7 +116,7 @@ function CreateProjectModalForm({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="devflow-project-modal-form">
           <div className="devflow-project-modal-fields">
             <div className="devflow-field-group">
               <Label htmlFor="create-project-name" className="devflow-field-label">

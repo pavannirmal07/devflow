@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import type { CreateTaskInput, DevTask, TaskSubtask, UpdateTaskInput } from "./types";
+import type {
+  CreateTaskInput,
+  DevTask,
+  TaskSubtask,
+  TaskTimeStats,
+  UpdateTaskInput,
+} from "./types";
 import {
   getTasks,
   createTask as createTaskApi,
@@ -7,10 +13,15 @@ import {
   deleteTask as deleteTaskApi,
 } from "./tasks";
 import { getAllSubtasksForUser } from "./subtasks";
+import { getAllGitHubLinksForUser } from "../github/github";
+import { getTaskTimeStatsForUser } from "../sessions/sessions";
+import type { TaskGitHubLink } from "../github/types";
 
 export function useTasks(userId?: string) {
   const [tasks, setTasks] = useState<DevTask[]>([]);
   const [subtasksMap, setSubtasksMap] = useState<Record<string, TaskSubtask[]>>({});
+  const [githubLinksMap, setGithubLinksMap] = useState<Record<string, TaskGitHubLink[]>>({});
+  const [taskTimeMap, setTaskTimeMap] = useState<Record<string, TaskTimeStats>>({});
   const [loading, setLoading] = useState(Boolean(userId));
   const [error, setError] = useState<string | null>(null);
 
@@ -21,41 +32,69 @@ export function useTasks(userId?: string) {
 
     let isSubscribed = true;
 
-    Promise.all([getTasks(userId), getAllSubtasksForUser(userId)]).then(
-      ([tasksRes, subtasksRes]) => {
-        if (!isSubscribed) return;
+    Promise.all([
+      getTasks(userId),
+      getAllSubtasksForUser(userId),
+      getAllGitHubLinksForUser(userId),
+      getTaskTimeStatsForUser(userId),
+    ]).then(([tasksRes, subtasksRes, githubRes, timeRes]) => {
+      if (!isSubscribed) return;
 
-        if (tasksRes.error) {
-          console.error("Failed to load tasks:", tasksRes.error);
-          setError(tasksRes.error.message);
-          setTasks([]);
-          setSubtasksMap({});
-        } else {
-          setTasks(tasksRes.tasks || []);
-          setError(null);
+      if (tasksRes.error) {
+        console.error("Failed to load tasks:", tasksRes.error);
+        setError(tasksRes.error.message);
+        setTasks([]);
+        setSubtasksMap({});
+        setGithubLinksMap({});
+        setTaskTimeMap({});
+      } else {
+        setTasks(tasksRes.tasks || []);
+        setError(null);
 
-          const map: Record<string, TaskSubtask[]> = {};
-          if (subtasksRes.subtasks) {
-            for (const sub of subtasksRes.subtasks) {
-              if (!map[sub.task_id]) {
-                map[sub.task_id] = [];
-              }
-              map[sub.task_id].push(sub);
+        const subMap: Record<string, TaskSubtask[]> = {};
+        if (subtasksRes.subtasks) {
+          for (const sub of subtasksRes.subtasks) {
+            if (!subMap[sub.task_id]) {
+              subMap[sub.task_id] = [];
             }
-            for (const key of Object.keys(map)) {
-              map[key].sort((a, b) => a.position - b.position);
-            }
+            subMap[sub.task_id].push(sub);
           }
-          setSubtasksMap(map);
+          for (const key of Object.keys(subMap)) {
+            subMap[key].sort((a, b) => a.position - b.position);
+          }
         }
-        setLoading(false);
+        setSubtasksMap(subMap);
+
+        const ghMap: Record<string, TaskGitHubLink[]> = {};
+        if (githubRes.links) {
+          for (const link of githubRes.links) {
+            if (!ghMap[link.task_id]) {
+              ghMap[link.task_id] = [];
+            }
+            ghMap[link.task_id].push(link);
+          }
+        }
+        setGithubLinksMap(ghMap);
+
+        setTaskTimeMap(timeRes.timeStatsMap || {});
       }
-    );
+      setLoading(false);
+    });
 
     return () => {
       isSubscribed = false;
     };
   }, [userId]);
+
+  const updateTaskGitHubLinks = useCallback(
+    (taskId: string, links: TaskGitHubLink[]) => {
+      setGithubLinksMap((prev) => ({
+        ...prev,
+        [taskId]: links,
+      }));
+    },
+    []
+  );
 
   const updateTaskSubtasks = useCallback((taskId: string, subtasks: TaskSubtask[]) => {
     setSubtasksMap((prev) => ({
@@ -148,9 +187,11 @@ export function useTasks(userId?: string) {
     if (!userId) return;
 
     setLoading(true);
-    const [tasksRes, subtasksRes] = await Promise.all([
+    const [tasksRes, subtasksRes, githubRes, timeRes] = await Promise.all([
       getTasks(userId),
       getAllSubtasksForUser(userId),
+      getAllGitHubLinksForUser(userId),
+      getTaskTimeStatsForUser(userId),
     ]);
 
     if (tasksRes.error) {
@@ -159,19 +200,31 @@ export function useTasks(userId?: string) {
       setTasks(tasksRes.tasks || []);
       setError(null);
 
-      const map: Record<string, TaskSubtask[]> = {};
+      const subMap: Record<string, TaskSubtask[]> = {};
       if (subtasksRes.subtasks) {
         for (const sub of subtasksRes.subtasks) {
-          if (!map[sub.task_id]) {
-            map[sub.task_id] = [];
+          if (!subMap[sub.task_id]) {
+            subMap[sub.task_id] = [];
           }
-          map[sub.task_id].push(sub);
+          subMap[sub.task_id].push(sub);
         }
-        for (const key of Object.keys(map)) {
-          map[key].sort((a, b) => a.position - b.position);
+        for (const key of Object.keys(subMap)) {
+          subMap[key].sort((a, b) => a.position - b.position);
         }
       }
-      setSubtasksMap(map);
+      setSubtasksMap(subMap);
+
+      const ghMap: Record<string, TaskGitHubLink[]> = {};
+      if (githubRes.links) {
+        for (const link of githubRes.links) {
+          if (!ghMap[link.task_id]) {
+            ghMap[link.task_id] = [];
+          }
+          ghMap[link.task_id].push(link);
+        }
+      }
+      setGithubLinksMap(ghMap);
+      setTaskTimeMap(timeRes.timeStatsMap || {});
     }
     setLoading(false);
   };
@@ -179,7 +232,10 @@ export function useTasks(userId?: string) {
   return {
     tasks: userId ? tasks : [],
     subtasksMap,
+    githubLinksMap,
+    taskTimeMap,
     updateTaskSubtasks,
+    updateTaskGitHubLinks,
     loading: userId ? loading : false,
     error: userId ? error : null,
     createTask,
