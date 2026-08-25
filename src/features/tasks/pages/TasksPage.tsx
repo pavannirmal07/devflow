@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
-import { Plus, ListTodo, AlertCircle, RefreshCw } from "lucide-react";
+import { Plus, ListTodo, AlertCircle, RefreshCw, LayoutList, Columns3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/features/projects";
 import { useSessions } from "@/features/sessions";
 import { useTasks } from "../useTasks";
 import { TaskCard } from "../components/TaskCard";
+import { TaskBoard } from "../components/TaskBoard";
 import { CreateTaskModal } from "../components/CreateTaskModal";
 import { EditTaskModal } from "../components/EditTaskModal";
 import type { DevTask, TaskDueDateFilter, TaskStatus } from "../types";
@@ -44,6 +45,25 @@ export function TasksPage({ userId }: TasksPageProps) {
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [sessionWarning, setSessionWarning] = useState<string | null>(null);
+
+  const [viewMode, setViewMode] = useState<"list" | "board">(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("devflow_tasks_view_mode");
+      if (saved === "board" || saved === "list") return saved;
+    }
+    return "list";
+  });
+
+  const handleViewModeChange = (mode: "list" | "board") => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem("devflow_tasks_view_mode", mode);
+      } catch {
+        // ignore storage errors
+      }
+    }
+  };
 
   // Map projects for fast lookup
   const projectMap = useMemo(() => {
@@ -115,6 +135,17 @@ export function TasksPage({ userId }: TasksPageProps) {
     }
   };
 
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    const target = tasks.find((t) => t.id === taskId);
+    if (!target || target.status === newStatus) return;
+
+    setActionError(null);
+    const { error: updateErr } = await updateTask(taskId, { status: newStatus });
+    if (updateErr) {
+      setActionError(updateErr.message);
+    }
+  };
+
   const handleStartFocusSession = async (task: DevTask) => {
     if (task.status === "completed") {
       setSessionWarning("Completed tasks cannot start a focus session. Reopen the task first.");
@@ -147,7 +178,7 @@ export function TasksPage({ userId }: TasksPageProps) {
   };
 
   return (
-    <div className="devflow-tasks-page">
+    <div className={`devflow-tasks-page ${viewMode === "board" ? "is-board-view" : ""}`}>
       {/* Header */}
       <div className="devflow-tasks-header">
         <div className="devflow-tasks-title-group">
@@ -275,6 +306,32 @@ export function TasksPage({ userId }: TasksPageProps) {
         </div>
 
         <div className="devflow-tasks-secondary-filters">
+          {/* List / Board View Toggle */}
+          <div className="devflow-tasks-view-toggle-group" role="group" aria-label="View mode toggle">
+            <button
+              type="button"
+              className={`devflow-view-toggle-btn ${viewMode === "list" ? "is-active" : ""}`}
+              onClick={() => handleViewModeChange("list")}
+              aria-pressed={viewMode === "list"}
+              aria-label="List view"
+              title="List view"
+            >
+              <LayoutList className="size-3.5" />
+              <span>List</span>
+            </button>
+            <button
+              type="button"
+              className={`devflow-view-toggle-btn ${viewMode === "board" ? "is-active" : ""}`}
+              onClick={() => handleViewModeChange("board")}
+              aria-pressed={viewMode === "board"}
+              aria-label="Board view"
+              title="Board view"
+            >
+              <Columns3 className="size-3.5" />
+              <span>Board</span>
+            </button>
+          </div>
+
           <div className="devflow-tasks-date-filter">
             <select
               value={activeDateFilter}
@@ -368,6 +425,21 @@ export function TasksPage({ userId }: TasksPageProps) {
             Reset Filters
           </Button>
         </div>
+      ) : viewMode === "board" ? (
+        <TaskBoard
+          tasks={filteredTasks}
+          projectMap={projectMap}
+          subtasksMap={subtasksMap}
+          githubLinksMap={githubLinksMap}
+          taskTimeMap={taskTimeMap}
+          activeSession={activeSession}
+          onStartSession={handleStartFocusSession}
+          onEdit={(t) => setEditingTask(t)}
+          onDelete={handleDelete}
+          onSubtasksChange={updateTaskSubtasks}
+          onStatusChange={handleStatusChange}
+          deletingTaskId={deletingTaskId}
+        />
       ) : (
         <div className="devflow-tasks-grid">
           {filteredTasks.map((task) => {
@@ -389,6 +461,7 @@ export function TasksPage({ userId }: TasksPageProps) {
                 githubLinks={githubLinksMap[task.id] || []}
                 timeStats={taskTimeMap[task.id]}
                 activeSession={activeSession}
+                onStatusChange={handleStatusChange}
               />
             );
           })}

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Circle,
   Activity,
@@ -11,10 +11,11 @@ import {
   CheckSquare,
   ChevronRight,
   Clock,
+  ArrowRightLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import type { DevTask, TaskSubtask, TaskTimeStats } from "../types";
+import type { DevTask, TaskStatus, TaskSubtask, TaskTimeStats } from "../types";
 import type { DevSession } from "../../sessions/types";
 import { TaskQuickSubtasksPopover } from "./TaskQuickSubtasksPopover";
 import { TaskCardGitHubBadge } from "../../github/components/TaskCardGitHubBadge";
@@ -35,6 +36,11 @@ export interface TaskCardProps {
   githubLinks?: TaskGitHubLink[];
   timeStats?: TaskTimeStats;
   activeSession?: DevSession | null;
+  onStatusChange?: (taskId: string, newStatus: TaskStatus) => Promise<void> | void;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
+  className?: string;
 }
 
 function formatDate(isoString: string): string {
@@ -45,7 +51,6 @@ function formatDate(isoString: string): string {
     year: "numeric",
   });
 }
-
 
 export function TaskCard({
   task,
@@ -60,9 +65,63 @@ export function TaskCard({
   githubLinks = [],
   timeStats,
   activeSession,
+  onStatusChange,
+  draggable = false,
+  onDragStart,
+  onDragEnd,
+  className = "",
 }: TaskCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [moveToOpen, setMoveToOpen] = useState(false);
+
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Mobile Long-Press to open "Move to" menu
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!onStatusChange) return;
+
+    // Ignore touches on interactive child controls
+    const target = e.target as HTMLElement | null;
+    if (
+      target?.closest("button") ||
+      target?.closest("a") ||
+      target?.closest("input") ||
+      target?.closest("[role='dialog']") ||
+      target?.closest("[data-radix-popper-content-wrapper]")
+    ) {
+      return;
+    }
+
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
+
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    touchTimerRef.current = setTimeout(() => {
+      setMoveToOpen(true);
+      touchStartPosRef.current = null;
+    }, 450);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartPosRef.current) return;
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
+    const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
+
+    // If user scrolled > 8px before 450ms, cancel long-press
+    if (dx > 8 || dy > 8) {
+      if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+      touchStartPosRef.current = null;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    touchStartPosRef.current = null;
+  };
 
   const isThisTaskSessionActive =
     activeSession?.task_id === task.id && activeSession.status === "active";
@@ -78,7 +137,6 @@ export function TaskCard({
     }, 1000);
     return () => clearInterval(interval);
   }, [isThisTaskSessionActive]);
-
 
   const liveTotalSeconds = useMemo(() => {
     void tick;
@@ -106,7 +164,6 @@ export function TaskCard({
     return baseSeconds;
   }, [timeStats, activeSession, task.id, tick]);
 
-
   const sessionCount = useMemo(() => {
     let count = timeStats?.sessionCount || 0;
     if (activeSession && activeSession.task_id === task.id) {
@@ -129,7 +186,16 @@ export function TaskCard({
   };
 
   return (
-    <div className="devflow-task-card">
+    <div
+      className={`devflow-task-card ${className}`.trim()}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
       <div className="devflow-task-card-body">
         <div className="devflow-task-card-header">
           <div className="devflow-task-badges-row">
@@ -152,101 +218,87 @@ export function TaskCard({
               </span>
             )}
 
-            <span className={`devflow-task-priority-badge is-${task.priority}`}>
-              <span>{task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
+            <span
+              className={`devflow-task-priority-badge is-${task.priority.toLowerCase()}`}
+            >
+              {task.priority.toUpperCase()}
             </span>
 
             {projectName && (
               <span className="devflow-task-project-pill" title={projectName}>
                 <span
                   className="devflow-task-project-dot"
-                  style={{ backgroundColor: projectColor || "#a855f7" }}
+                  style={{ backgroundColor: projectColor || "var(--accent)" }}
                 />
                 <span className="truncate">{projectName}</span>
               </span>
             )}
 
-            {liveTotalSeconds > 0 && (
-              <span
-                className={`devflow-task-time-badge ${
-                  isThisTaskSessionActive
-                    ? "is-live"
-                    : isThisTaskSessionPaused
-                    ? "is-paused"
-                    : ""
-                }`}
-                title={`Total focus time: ${formatDuration(
-                  liveTotalSeconds
-                )} across ${sessionCount} session${
-                  sessionCount === 1 ? "" : "s"
-                }${
-                  isThisTaskSessionActive
-                    ? " (Active right now)"
-                    : isThisTaskSessionPaused
-                    ? " (Paused)"
-                    : ""
-                }`}
-              >
-                <Clock
-                  className={`size-3 ${
-                    isThisTaskSessionActive ? "text-amber-500 animate-pulse" : ""
-                  }`}
-                />
-                <span>{formatDuration(liveTotalSeconds)}</span>
-              </span>
+            {/* GitHub Badges */}
+            {githubLinks && githubLinks.length > 0 && (
+              <TaskCardGitHubBadge links={githubLinks} />
             )}
           </div>
         </div>
 
-
-        {/* GitHub Development Section (Separate rows for Branch and PR) */}
-        {githubLinks && githubLinks.length > 0 && (
-          <TaskCardGitHubBadge
-            links={githubLinks}
-            onOpenEditModal={() => onEdit(task)}
-          />
-        )}
-
         <h3 className="devflow-task-card-title">{task.title}</h3>
 
-        {task.description ? (
-          <p className="devflow-task-card-desc">{task.description}</p>
-        ) : (
-          <p className="devflow-task-card-desc italic text-muted-foreground/60">
-            No description provided.
-          </p>
+        {task.description && (
+          <p className="devflow-task-card-description">{task.description}</p>
         )}
 
-        {/* Compact Subtasks Progress Section with Portaled Quick View */}
-        <div className="devflow-task-card-subtasks-container">
+        {/* Focus Session Tracking Indicators */}
+        {(sessionCount > 0 || isThisTaskSessionActive || isThisTaskSessionPaused) && (
+          <div className="devflow-task-card-time-row">
+            <div className="devflow-task-time-pill" title="Total time tracked on this task">
+              <Clock className="size-3 text-muted-foreground shrink-0" />
+              <span className="font-mono text-xs font-semibold text-foreground">
+                {formatDuration(liveTotalSeconds)}
+              </span>
+            </div>
+
+            {sessionCount > 0 && (
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                {sessionCount} {sessionCount === 1 ? "session" : "sessions"}
+              </span>
+            )}
+
+            {isThisTaskSessionActive && (
+              <span className="devflow-task-live-session-badge is-active">
+                <span className="devflow-pulse-dot shrink-0" />
+                <span>Focusing</span>
+              </span>
+            )}
+
+            {isThisTaskSessionPaused && (
+              <span className="devflow-task-live-session-badge is-paused">
+                <span>Paused</span>
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Subtasks Collapsible / Quick View Bar */}
+        <div className="devflow-task-subtasks-preview">
           <Popover open={quickViewOpen} onOpenChange={setQuickViewOpen}>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`devflow-task-subtasks-btn ${quickViewOpen ? "is-active" : ""}`}
-                aria-expanded={quickViewOpen}
-                aria-haspopup="dialog"
-                aria-label={
-                  subtaskProgress.total > 0
-                    ? `Subtasks: ${subtaskProgress.completed} of ${subtaskProgress.total} completed. Click to view subtasks`
-                    : "Subtasks: No subtasks. Click to add subtask"
-                }
-                title={subtaskProgress.total > 0 ? "View subtasks" : "Add subtask"}
+                className="devflow-task-subtasks-summary-btn"
+                aria-label={`View subtasks for ${task.title}`}
               >
-                <div className="devflow-task-subtasks-btn-content">
-                  <div className="devflow-task-subtasks-btn-left">
-                    <CheckSquare className="size-3.5 text-accent shrink-0" />
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <CheckSquare className="size-3.5 text-muted-foreground" />
                     {subtaskProgress.total > 0 ? (
-                      <>
-                        <span className="devflow-task-subtasks-label">Subtasks</span>
-                        <span className="devflow-task-subtasks-count">
-                          {`${subtaskProgress.completed}/${subtaskProgress.total}`}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="devflow-task-subtasks-label font-medium">
-                        Subtasks <span className="devflow-task-subtasks-dot mx-0.5 text-muted-foreground/70">·</span> <span className="text-accent font-semibold">Add</span>
+                      <span>
+                        <strong className="text-foreground">
+                          {subtaskProgress.completed}/{subtaskProgress.total}
+                        </strong>{" "}
+                        subtasks
                       </span>
+                    ) : (
+                      <span className="italic">No subtasks</span>
                     )}
                   </div>
                   <ChevronRight
@@ -333,7 +385,6 @@ export function TaskCard({
             )}
           </div>
 
-
           <div className="devflow-task-card-actions">
             {confirmDelete ? (
               <div className="devflow-task-delete-confirm">
@@ -359,6 +410,70 @@ export function TaskCard({
               </div>
             ) : (
               <>
+                {onStatusChange && (
+                  <Popover open={moveToOpen} onOpenChange={setMoveToOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label="Move task status"
+                        title="Move to another column"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <ArrowRightLeft className="size-3.5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-40 p-1.5 bg-popover text-popover-foreground border-border shadow-lg rounded-lg z-50 space-y-1"
+                      align="end"
+                      sideOffset={4}
+                    >
+                      <div className="text-[10px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider">
+                        Move to
+                      </div>
+                      {task.status !== "todo" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMoveToOpen(false);
+                            void onStatusChange(task.id, "todo");
+                          }}
+                          className="w-full text-left text-xs px-2 py-1.5 rounded-md hover:bg-accent/10 hover:text-accent flex items-center gap-2 transition-colors cursor-pointer"
+                        >
+                          <Circle className="size-3 text-sky-500 shrink-0" />
+                          <span>To Do</span>
+                        </button>
+                      )}
+                      {task.status !== "in_progress" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMoveToOpen(false);
+                            void onStatusChange(task.id, "in_progress");
+                          }}
+                          className="w-full text-left text-xs px-2 py-1.5 rounded-md hover:bg-accent/10 hover:text-accent flex items-center gap-2 transition-colors cursor-pointer"
+                        >
+                          <Activity className="size-3 text-purple-500 shrink-0" />
+                          <span>In Progress</span>
+                        </button>
+                      )}
+                      {task.status !== "completed" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMoveToOpen(false);
+                            void onStatusChange(task.id, "completed");
+                          }}
+                          className="w-full text-left text-xs px-2 py-1.5 rounded-md hover:bg-accent/10 hover:text-accent flex items-center gap-2 transition-colors cursor-pointer"
+                        >
+                          <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
+                          <span>Completed</span>
+                        </button>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                )}
                 {onStartSession && (
                   <Button
                     type="button"

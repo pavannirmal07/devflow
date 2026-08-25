@@ -7,6 +7,7 @@ export * from "./useTasks";
 
 export * from "./useSubtasks";
 export * from "./components/TaskCard";
+export * from "./components/TaskBoard";
 export * from "./components/SubtaskList";
 export * from "./components/TaskQuickSubtasksPopover";
 export * from "./components/TaskTimeSection";
