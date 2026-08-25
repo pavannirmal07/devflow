@@ -4,3 +4,4 @@ export * from "./useSessions";
 export * from "./pages/SessionsPage";
 export * from "./components/SessionTimer";
 export * from "./components/SessionCard";
+export * from "./components/TaskCompletionPrompt";

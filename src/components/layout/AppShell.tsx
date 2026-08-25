@@ -14,10 +14,12 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DashboardPage } from "@/features/dashboard";
 import { SessionsPage } from "@/features/sessions";
 import { ProjectsPage } from "@/features/projects";
 import { TasksPage } from "@/features/tasks";
 import "./AppShell.css";
+
 
 export interface AppShellProps {
   userId?: string;
@@ -205,7 +207,13 @@ export function AppShell({
         {/* Main Content Area */}
         <main className="devflow-main">
           {children ||
-            (activeNav === "sessions" && userId ? (
+            (activeNav === "dashboard" && userId ? (
+              <DashboardPage
+                userId={userId}
+                userName={userName}
+                onNavigate={handleSelectNav}
+              />
+            ) : activeNav === "sessions" && userId ? (
               <SessionsPage userId={userId} />
             ) : activeNav === "projects" && userId ? (
               <ProjectsPage userId={userId} />
