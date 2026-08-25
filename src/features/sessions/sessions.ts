@@ -1,5 +1,12 @@
 import { supabase } from "../../lib/supabase/client";
-import type { CreateSessionInput, DevSession } from "./types";
+import type {
+  CreateSessionInput,
+  DevSession,
+  SessionStatus,
+  TaskTimeSessionSummary,
+  TaskTimeStats,
+} from "./types";
+import { computeSessionDuration } from "../tasks/utils/duration";
 
 export async function getSessions(
   userId: string
@@ -151,6 +158,66 @@ export async function deleteSession(
   } catch (err) {
     return {
       error: err instanceof Error ? err : new Error("Failed to delete session"),
+    };
+  }
+}
+
+export async function getTaskTimeStatsForUser(
+  userId: string
+): Promise<{ timeStatsMap: Record<string, TaskTimeStats>; error: Error | null }> {
+  try {
+    if (!userId) {
+      return { timeStatsMap: {}, error: null };
+    }
+
+    const { data, error } = await supabase
+      .from("sessions")
+      .select("id, task_id, title, status, started_at, ended_at, duration_seconds, accumulated_seconds, last_resumed_at")
+      .eq("user_id", userId)
+      .not("task_id", "is", null)
+      .order("started_at", { ascending: false });
+
+    if (error) {
+      return { timeStatsMap: {}, error: new Error(error.message) };
+    }
+
+    const map: Record<string, TaskTimeStats> = {};
+
+    if (data) {
+      for (const row of data) {
+        if (!row.task_id) continue;
+
+        if (!map[row.task_id]) {
+          map[row.task_id] = {
+            totalSeconds: 0,
+            sessionCount: 0,
+            sessions: [],
+          };
+        }
+
+        const summary: TaskTimeSessionSummary = {
+          id: row.id,
+          title: row.title,
+          duration_seconds: row.duration_seconds,
+          accumulated_seconds: row.accumulated_seconds ?? 0,
+          status: row.status as SessionStatus,
+          started_at: row.started_at,
+          ended_at: row.ended_at,
+          last_resumed_at: row.last_resumed_at,
+        };
+
+        const duration = computeSessionDuration(summary);
+        map[row.task_id].totalSeconds += duration;
+        map[row.task_id].sessionCount += 1;
+        map[row.task_id].sessions.push(summary);
+      }
+    }
+
+    return { timeStatsMap: map, error: null };
+  } catch (err) {
+    return {
+      timeStatsMap: {},
+      error: err instanceof Error ? err : new Error("Failed to fetch task time stats"),
     };
   }
 }

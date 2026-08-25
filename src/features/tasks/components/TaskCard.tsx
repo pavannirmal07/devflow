@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Circle,
   Activity,
@@ -9,13 +9,16 @@ import {
   Timer,
   CheckSquare,
   ChevronRight,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import type { DevTask, TaskSubtask } from "../types";
+import type { DevTask, TaskSubtask, TaskTimeStats } from "../types";
+import type { DevSession } from "../../sessions/types";
 import { TaskQuickSubtasksPopover } from "./TaskQuickSubtasksPopover";
 import { TaskCardGitHubBadge } from "../../github/components/TaskCardGitHubBadge";
 import type { TaskGitHubLink } from "../../github/types";
+import { computeSessionDuration, formatDuration } from "../utils/duration";
 
 export interface TaskCardProps {
   task: DevTask;
@@ -28,6 +31,8 @@ export interface TaskCardProps {
   subtasks?: TaskSubtask[];
   onSubtasksChange?: (taskId: string, subtasks: TaskSubtask[]) => void;
   githubLinks?: TaskGitHubLink[];
+  timeStats?: TaskTimeStats;
+  activeSession?: DevSession | null;
 }
 
 function formatDate(isoString: string): string {
@@ -58,9 +63,63 @@ export function TaskCard({
   subtasks = [],
   onSubtasksChange,
   githubLinks = [],
+  timeStats,
+  activeSession,
 }: TaskCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+
+  const isThisTaskSessionActive =
+    activeSession?.task_id === task.id && activeSession.status === "active";
+  const isThisTaskSessionPaused =
+    activeSession?.task_id === task.id && activeSession.status === "paused";
+
+  // Re-render tick every second when session is active for this task
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!isThisTaskSessionActive) return;
+    const interval = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isThisTaskSessionActive]);
+
+
+  const liveTotalSeconds = useMemo(() => {
+    void tick;
+    let baseSeconds = 0;
+
+    const sessions = timeStats?.sessions || [];
+    const hasLiveActive = activeSession && activeSession.task_id === task.id;
+
+    if (!hasLiveActive) {
+      baseSeconds = timeStats?.totalSeconds || 0;
+    } else {
+      let foundActiveInStats = false;
+      for (const s of sessions) {
+        if (s.id === activeSession.id) {
+          foundActiveInStats = true;
+          baseSeconds += computeSessionDuration(activeSession);
+        } else {
+          baseSeconds += computeSessionDuration(s);
+        }
+      }
+      if (!foundActiveInStats) {
+        baseSeconds += computeSessionDuration(activeSession);
+      }
+    }
+    return baseSeconds;
+  }, [timeStats, activeSession, task.id, tick]);
+
+
+  const sessionCount = useMemo(() => {
+    let count = timeStats?.sessionCount || 0;
+    if (activeSession && activeSession.task_id === task.id) {
+      const exists = timeStats?.sessions.some((s) => s.id === activeSession.id);
+      if (!exists) count += 1;
+    }
+    return count;
+  }, [timeStats, activeSession, task.id]);
 
   const subtaskProgress = useMemo(() => {
     const total = subtasks.length;
@@ -112,8 +171,38 @@ export function TaskCard({
               </span>
             )}
 
+            {liveTotalSeconds > 0 && (
+              <span
+                className={`devflow-task-time-badge ${
+                  isThisTaskSessionActive
+                    ? "is-live"
+                    : isThisTaskSessionPaused
+                    ? "is-paused"
+                    : ""
+                }`}
+                title={`Total focus time: ${formatDuration(
+                  liveTotalSeconds
+                )} across ${sessionCount} session${
+                  sessionCount === 1 ? "" : "s"
+                }${
+                  isThisTaskSessionActive
+                    ? " (Active right now)"
+                    : isThisTaskSessionPaused
+                    ? " (Paused)"
+                    : ""
+                }`}
+              >
+                <Clock
+                  className={`size-3 ${
+                    isThisTaskSessionActive ? "text-amber-500 animate-pulse" : ""
+                  }`}
+                />
+                <span>{formatDuration(liveTotalSeconds)}</span>
+              </span>
+            )}
           </div>
         </div>
+
 
         {/* GitHub Development Section (Separate rows for Branch and PR) */}
         {githubLinks && githubLinks.length > 0 && (

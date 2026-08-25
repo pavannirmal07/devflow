@@ -3,8 +3,10 @@ import { X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { DevProject } from "@/features/projects";
-import type { DevTask, TaskPriority, TaskStatus, TaskSubtask, UpdateTaskInput } from "../types";
+import type { DevTask, TaskPriority, TaskStatus, TaskSubtask, TaskTimeStats, UpdateTaskInput } from "../types";
+import type { DevSession } from "../../sessions/types";
 import { SubtaskList } from "./SubtaskList";
+import { TaskTimeSection } from "./TaskTimeSection";
 import { TaskGitHubSection } from "../../github/components/TaskGitHubSection";
 import type { TaskGitHubLink } from "../../github/types";
 
@@ -21,6 +23,9 @@ export interface EditTaskModalProps {
   onSubtasksChange?: (taskId: string, subtasks: TaskSubtask[]) => void;
   githubLinks?: TaskGitHubLink[];
   onGitHubLinksChange?: (taskId: string, links: TaskGitHubLink[]) => void;
+  timeStats?: TaskTimeStats;
+  activeSession?: DevSession | null;
+  onStartSession?: (task: DevTask) => void;
 }
 
 export function EditTaskModal({
@@ -33,6 +38,9 @@ export function EditTaskModal({
   onSubtasksChange,
   githubLinks,
   onGitHubLinksChange,
+  timeStats,
+  activeSession,
+  onStartSession,
 }: EditTaskModalProps) {
   if (!isOpen || !task) return null;
 
@@ -53,6 +61,9 @@ export function EditTaskModal({
           ? (links) => onGitHubLinksChange(task.id, links)
           : undefined
       }
+      timeStats={timeStats}
+      activeSession={activeSession}
+      onStartSession={onStartSession}
     />
   );
 }
@@ -69,6 +80,9 @@ interface EditTaskModalFormProps {
   onSubtasksChange?: (subtasks: TaskSubtask[]) => void;
   initialGitHubLinks?: TaskGitHubLink[];
   onGitHubLinksChange?: (links: TaskGitHubLink[]) => void;
+  timeStats?: TaskTimeStats;
+  activeSession?: DevSession | null;
+  onStartSession?: (task: DevTask) => void;
 }
 
 function EditTaskModalForm({
@@ -80,6 +94,9 @@ function EditTaskModalForm({
   onSubtasksChange,
   initialGitHubLinks,
   onGitHubLinksChange,
+  timeStats,
+  activeSession,
+  onStartSession,
 }: EditTaskModalFormProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
@@ -93,12 +110,12 @@ function EditTaskModalForm({
   const selectedProject = projects.find((p) => p.id === projectId);
   const projectConfig = selectedProject
     ? {
-        github_repository_id: selectedProject.github_repository_id,
-        github_owner: selectedProject.github_owner,
-        github_repo: selectedProject.github_repo,
-        github_default_branch: selectedProject.github_default_branch,
-        github_installation_id: selectedProject.github_installation_id,
-      }
+      github_repository_id: selectedProject.github_repository_id,
+      github_owner: selectedProject.github_owner,
+      github_repo: selectedProject.github_repo,
+      github_default_branch: selectedProject.github_default_branch,
+      github_installation_id: selectedProject.github_installation_id,
+    }
     : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -287,6 +304,15 @@ function EditTaskModalForm({
               taskId={task.id}
               initialSubtasks={initialSubtasks}
               onSubtasksChange={onSubtasksChange}
+              disabled={isSubmitting}
+            />
+
+            {/* Time Tracked Section */}
+            <TaskTimeSection
+              task={task}
+              timeStats={timeStats}
+              activeSession={activeSession}
+              onStartSession={onStartSession}
               disabled={isSubmitting}
             />
 

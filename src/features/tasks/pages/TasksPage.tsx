@@ -21,6 +21,7 @@ export function TasksPage({ userId }: TasksPageProps) {
     tasks,
     subtasksMap,
     githubLinksMap,
+    taskTimeMap,
     updateTaskSubtasks,
     updateTaskGitHubLinks,
     loading,
@@ -199,9 +200,8 @@ export function TasksPage({ userId }: TasksPageProps) {
             type="button"
             role="tab"
             aria-selected={activeStatusFilter === "all"}
-            className={`devflow-filter-pill ${
-              activeStatusFilter === "all" ? "is-active" : ""
-            }`}
+            className={`devflow-filter-pill ${activeStatusFilter === "all" ? "is-active" : ""
+              }`}
             onClick={() => setActiveStatusFilter("all")}
           >
             <span>All</span>
@@ -212,9 +212,8 @@ export function TasksPage({ userId }: TasksPageProps) {
             type="button"
             role="tab"
             aria-selected={activeStatusFilter === "todo"}
-            className={`devflow-filter-pill ${
-              activeStatusFilter === "todo" ? "is-active" : ""
-            }`}
+            className={`devflow-filter-pill ${activeStatusFilter === "todo" ? "is-active" : ""
+              }`}
             onClick={() => setActiveStatusFilter("todo")}
           >
             <span>To Do</span>
@@ -225,9 +224,8 @@ export function TasksPage({ userId }: TasksPageProps) {
             type="button"
             role="tab"
             aria-selected={activeStatusFilter === "in_progress"}
-            className={`devflow-filter-pill ${
-              activeStatusFilter === "in_progress" ? "is-active" : ""
-            }`}
+            className={`devflow-filter-pill ${activeStatusFilter === "in_progress" ? "is-active" : ""
+              }`}
             onClick={() => setActiveStatusFilter("in_progress")}
           >
             <span>In Progress</span>
@@ -238,9 +236,8 @@ export function TasksPage({ userId }: TasksPageProps) {
             type="button"
             role="tab"
             aria-selected={activeStatusFilter === "completed"}
-            className={`devflow-filter-pill ${
-              activeStatusFilter === "completed" ? "is-active" : ""
-            }`}
+            className={`devflow-filter-pill ${activeStatusFilter === "completed" ? "is-active" : ""
+              }`}
             onClick={() => setActiveStatusFilter("completed")}
           >
             <span>Completed</span>
@@ -332,6 +329,8 @@ export function TasksPage({ userId }: TasksPageProps) {
                 subtasks={subtasksMap[task.id] || []}
                 onSubtasksChange={updateTaskSubtasks}
                 githubLinks={githubLinksMap[task.id] || []}
+                timeStats={taskTimeMap[task.id]}
+                activeSession={activeSession}
               />
             );
           })}
@@ -357,6 +356,9 @@ export function TasksPage({ userId }: TasksPageProps) {
         onSubtasksChange={updateTaskSubtasks}
         githubLinks={editingTask ? githubLinksMap[editingTask.id] || [] : []}
         onGitHubLinksChange={updateTaskGitHubLinks}
+        timeStats={editingTask ? taskTimeMap[editingTask.id] : undefined}
+        activeSession={activeSession}
+        onStartSession={handleStartFocusSession}
       />
     </div>
   );
