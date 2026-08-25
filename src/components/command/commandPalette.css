@@ -1,0 +1,324 @@
+/* ============================================================================
+   DevFlow Global Command Palette Styles
+   ============================================================================ */
+
+/* Backdrop Overlay */
+.devflow-command-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 16px 24px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  animation: devflow-fade-in 0.15s ease-out;
+}
+
+/* Modal Card */
+.devflow-command-modal {
+  width: 100%;
+  max-width: 600px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+  animation: devflow-command-scale-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .devflow-command-modal {
+  background: var(--bg);
+  border-color: var(--border);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--border);
+}
+
+/* Header & Search Bar */
+.devflow-command-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.devflow-command-search-icon {
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.devflow-command-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-h);
+  line-height: 1.4;
+}
+
+.devflow-command-input::placeholder {
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.devflow-command-esc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 6px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Inline Alert / Notice */
+.devflow-command-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  background: rgba(245, 158, 11, 0.1);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--text-h);
+}
+
+.devflow-command-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Body / Results Area */
+.devflow-command-body {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overscroll-behavior: contain;
+}
+
+/* Category Groups */
+.devflow-command-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.devflow-command-group-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  padding: 6px 10px 4px;
+  opacity: 0.8;
+}
+
+/* Result Items */
+.devflow-command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: var(--text-h);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s ease, color 0.1s ease;
+  border: 1px solid transparent;
+}
+
+.devflow-command-item:hover,
+.devflow-command-item.is-selected {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.devflow-command-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.devflow-command-item-icon {
+  color: var(--text);
+  flex-shrink: 0;
+  transition: color 0.1s ease;
+}
+
+.devflow-command-item.is-selected .devflow-command-item-icon,
+.devflow-command-item:hover .devflow-command-item-icon {
+  color: var(--accent);
+}
+
+.devflow-command-item-title {
+  font-weight: 500;
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.devflow-command-item.is-selected .devflow-command-item-title {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.devflow-command-item-subtitle {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.devflow-command-item-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Project Dot in Command Item */
+.devflow-command-project-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Focus Button Action inside Task Row */
+.devflow-command-focus-btn {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  gap: 4px;
+  background: transparent;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+
+.devflow-command-focus-btn:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+/* Empty State */
+.devflow-command-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 16px;
+  text-align: center;
+  gap: 6px;
+}
+
+.devflow-command-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-command-empty-desc {
+  font-size: 12.5px;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Footer & Keyboard Hints */
+.devflow-command-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--code-bg);
+  font-size: 11.5px;
+  color: var(--text);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.devflow-command-footer-hints {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.devflow-command-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.devflow-command-hint kbd {
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+}
+
+/* Animations */
+@keyframes devflow-command-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .devflow-command-backdrop {
+    padding-top: 20px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .devflow-command-body {
+    max-height: 60vh;
+  }
+
+  .devflow-command-footer-hints {
+    display: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore, useCallback } from "react";
 import type { CreateSessionInput, DevSession } from "./types";
 import {
   getSessions,
@@ -9,172 +9,237 @@ import {
   deleteSession as deleteSessionApi,
 } from "./sessions";
 
+interface SessionStoreState {
+  sessions: DevSession[];
+  loading: boolean;
+  error: string | null;
+  userId: string | null;
+  fetched: boolean;
+}
+
+let sessionStore: SessionStoreState = {
+  sessions: [],
+  loading: false,
+  error: null,
+  userId: null,
+  fetched: false,
+};
+
+const listeners = new Set<() => void>();
+
+function emitChange() {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+function updateStore(partial: Partial<SessionStoreState>) {
+  sessionStore = { ...sessionStore, ...partial };
+  emitChange();
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot() {
+  return sessionStore;
+}
+
 export function useSessions(userId?: string) {
-  const [sessions, setSessions] = useState<DevSession[]>([]);
-  const [loading, setLoading] = useState(Boolean(userId));
-  const [error, setError] = useState<string | null>(null);
+  const store = useSyncExternalStore(subscribe, getSnapshot);
 
   useEffect(() => {
     if (!userId) {
       return;
     }
 
-    let isSubscribed = true;
-
-    getSessions(userId).then(({ sessions: fetchedSessions, error: fetchError }) => {
-      if (!isSubscribed) return;
-
-      if (fetchError) {
-        console.error("Failed to load sessions:", fetchError);
-        setError(fetchError.message);
-        setSessions([]);
-      } else {
-        setSessions(fetchedSessions || []);
-        setError(null);
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      isSubscribed = false;
-    };
+    if (sessionStore.userId !== userId || !sessionStore.fetched) {
+      updateStore({ userId, loading: true, error: null });
+      getSessions(userId).then(({ sessions: fetchedSessions, error: fetchError }) => {
+        if (fetchError) {
+          console.error("Failed to load sessions:", fetchError);
+          updateStore({
+            sessions: [],
+            error: fetchError.message,
+            loading: false,
+            fetched: true,
+          });
+        } else {
+          updateStore({
+            sessions: fetchedSessions || [],
+            error: null,
+            loading: false,
+            fetched: true,
+          });
+        }
+      });
+    }
   }, [userId]);
 
   const activeSession = userId
-    ? sessions.find((s) => s.status === "active" || s.status === "paused") || null
+    ? store.sessions.find((s) => s.status === "active" || s.status === "paused") || null
     : null;
 
-  const startSession = async (
-    input: CreateSessionInput
-  ): Promise<{ session: DevSession | null; error: Error | null }> => {
-    if (!userId) {
-      const err = new Error("User must be authenticated to start a session");
-      setError(err.message);
-      return { session: null, error: err };
-    }
+  const startSession = useCallback(
+    async (
+      input: CreateSessionInput
+    ): Promise<{ session: DevSession | null; error: Error | null }> => {
+      if (!userId) {
+        const err = new Error("User must be authenticated to start a session");
+        updateStore({ error: err.message });
+        return { session: null, error: err };
+      }
 
-    const { session: newSession, error: createError } = await createSession(
-      userId,
-      input
-    );
-
-    if (createError) {
-      setError(createError.message);
-      return { session: null, error: createError };
-    }
-
-    if (newSession) {
-      setSessions((prev) => [
-        newSession,
-        ...prev.filter((s) => s.id !== newSession.id),
-      ]);
-      setError(null);
-    }
-
-    return { session: newSession, error: null };
-  };
-
-  const pauseSession = async (
-    sessionId: string
-  ): Promise<{ session: DevSession | null; error: Error | null }> => {
-    const { session: paused, error: pauseError } = await pauseSessionApi(sessionId);
-
-    if (pauseError) {
-      setError(pauseError.message);
-      return { session: null, error: pauseError };
-    }
-
-    if (paused) {
-      setSessions((prev) =>
-        prev.map((s) => (s.id === sessionId ? paused : s))
+      const { session: newSession, error: createError } = await createSession(
+        userId,
+        input
       );
-      setError(null);
-    }
 
-    return { session: paused, error: null };
-  };
+      if (createError) {
+        updateStore({ error: createError.message });
+        return { session: null, error: createError };
+      }
 
-  const resumeSession = async (
-    sessionId: string
-  ): Promise<{ session: DevSession | null; error: Error | null }> => {
-    const { session: resumed, error: resumeError } = await resumeSessionApi(sessionId);
+      if (newSession) {
+        updateStore({
+          sessions: [
+            newSession,
+            ...sessionStore.sessions.filter((s) => s.id !== newSession.id),
+          ],
+          error: null,
+        });
+      }
 
-    if (resumeError) {
-      setError(resumeError.message);
-      return { session: null, error: resumeError };
-    }
+      return { session: newSession, error: null };
+    },
+    [userId]
+  );
 
-    if (resumed) {
-      setSessions((prev) =>
-        prev.map((s) => (s.id === sessionId ? resumed : s))
+  const pauseSession = useCallback(
+    async (
+      sessionId: string
+    ): Promise<{ session: DevSession | null; error: Error | null }> => {
+      const { session: paused, error: pauseError } = await pauseSessionApi(sessionId);
+
+      if (pauseError) {
+        updateStore({ error: pauseError.message });
+        return { session: null, error: pauseError };
+      }
+
+      if (paused) {
+        updateStore({
+          sessions: sessionStore.sessions.map((s) =>
+            s.id === sessionId ? paused : s
+          ),
+          error: null,
+        });
+      }
+
+      return { session: paused, error: null };
+    },
+    []
+  );
+
+  const resumeSession = useCallback(
+    async (
+      sessionId: string
+    ): Promise<{ session: DevSession | null; error: Error | null }> => {
+      const { session: resumed, error: resumeError } = await resumeSessionApi(sessionId);
+
+      if (resumeError) {
+        updateStore({ error: resumeError.message });
+        return { session: null, error: resumeError };
+      }
+
+      if (resumed) {
+        updateStore({
+          sessions: sessionStore.sessions.map((s) =>
+            s.id === sessionId ? resumed : s
+          ),
+          error: null,
+        });
+      }
+
+      return { session: resumed, error: null };
+    },
+    []
+  );
+
+  const endSession = useCallback(
+    async (
+      sessionId: string
+    ): Promise<{ session: DevSession | null; error: Error | null }> => {
+      const { session: completed, error: completeError } = await completeSession(
+        sessionId
       );
-      setError(null);
-    }
 
-    return { session: resumed, error: null };
-  };
+      if (completeError) {
+        updateStore({ error: completeError.message });
+        return { session: null, error: completeError };
+      }
 
-  const endSession = async (
-    sessionId: string
-  ): Promise<{ session: DevSession | null; error: Error | null }> => {
-    const { session: completed, error: completeError } = await completeSession(
-      sessionId
-    );
+      if (completed) {
+        updateStore({
+          sessions: sessionStore.sessions.map((s) =>
+            s.id === sessionId ? completed : s
+          ),
+          error: null,
+        });
+      }
 
-    if (completeError) {
-      setError(completeError.message);
-      return { session: null, error: completeError };
-    }
+      return { session: completed, error: null };
+    },
+    []
+  );
 
-    if (completed) {
-      setSessions((prev) =>
-        prev.map((s) => (s.id === sessionId ? completed : s))
-      );
-      setError(null);
-    }
+  const deleteSession = useCallback(
+    async (sessionId: string): Promise<{ error: Error | null }> => {
+      const { error: deleteError } = await deleteSessionApi(sessionId);
 
-    return { session: completed, error: null };
-  };
+      if (deleteError) {
+        updateStore({ error: deleteError.message });
+        return { error: deleteError };
+      }
 
-  const deleteSession = async (
-    sessionId: string
-  ): Promise<{ error: Error | null }> => {
-    const { error: deleteError } = await deleteSessionApi(sessionId);
+      updateStore({
+        sessions: sessionStore.sessions.filter((s) => s.id !== sessionId),
+        error: null,
+      });
+      return { error: null };
+    },
+    []
+  );
 
-    if (deleteError) {
-      setError(deleteError.message);
-      return { error: deleteError };
-    }
-
-    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-    setError(null);
-    return { error: null };
-  };
-
-  const refreshSessions = async (): Promise<void> => {
+  const refreshSessions = useCallback(async (): Promise<void> => {
     if (!userId) return;
 
-    setLoading(true);
+    updateStore({ loading: true });
     const { sessions: fetchedSessions, error: fetchError } = await getSessions(
       userId
     );
 
     if (fetchError) {
-      setError(fetchError.message);
+      updateStore({ error: fetchError.message, loading: false });
     } else {
-      setSessions(fetchedSessions || []);
-      setError(null);
+      updateStore({
+        sessions: fetchedSessions || [],
+        error: null,
+        loading: false,
+      });
     }
-    setLoading(false);
-  };
+  }, [userId]);
 
   return {
-    sessions: userId ? sessions : [],
+    sessions: userId ? store.sessions : [],
     activeSession,
     inProgressSession: activeSession,
     isPaused: activeSession?.status === "paused",
-    loading: userId ? loading : false,
-    error: userId ? error : null,
+    loading: userId ? store.loading : false,
+    error: userId ? store.error : null,
     startSession,
     pauseSession,
     resumeSession,

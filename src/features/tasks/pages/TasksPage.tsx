@@ -14,11 +14,12 @@ import "../tasks.css";
 
 export interface TasksPageProps {
   userId: string;
+  highlightTaskId?: string | null;
 }
 
 type FilterStatus = "all" | TaskStatus;
 
-export function TasksPage({ userId }: TasksPageProps) {
+export function TasksPage({ userId, highlightTaskId }: TasksPageProps) {
   const {
     tasks,
     subtasksMap,
@@ -433,6 +434,7 @@ export function TasksPage({ userId }: TasksPageProps) {
           githubLinksMap={githubLinksMap}
           taskTimeMap={taskTimeMap}
           activeSession={activeSession}
+          highlightTaskId={highlightTaskId}
           onStartSession={handleStartFocusSession}
           onEdit={(t) => setEditingTask(t)}
           onDelete={handleDelete}
@@ -462,6 +464,7 @@ export function TasksPage({ userId }: TasksPageProps) {
                 timeStats={taskTimeMap[task.id]}
                 activeSession={activeSession}
                 onStatusChange={handleStatusChange}
+                isHighlighted={task.id === highlightTaskId}
               />
             );
           })}

@@ -12,6 +12,7 @@ export interface TaskBoardProps {
   githubLinksMap: Record<string, TaskGitHubLink[]>;
   taskTimeMap: Record<string, TaskTimeStats>;
   activeSession?: DevSession | null;
+  highlightTaskId?: string | null;
   onStartSession?: (task: DevTask) => void;
   onEdit: (task: DevTask) => void;
   onDelete: (taskId: string) => Promise<void>;
@@ -59,6 +60,7 @@ export function TaskBoard({
   githubLinksMap,
   taskTimeMap,
   activeSession,
+  highlightTaskId,
   onStartSession,
   onEdit,
   onDelete,
@@ -80,9 +82,9 @@ export function TaskBoard({
     e: React.DragEvent<HTMLDivElement>,
     task: DevTask
   ) => {
+    setDraggingTaskId(task.id);
     e.dataTransfer.setData("text/plain", task.id);
     e.dataTransfer.effectAllowed = "move";
-    setDraggingTaskId(task.id);
   };
 
   const handleDragEnd = () => {
@@ -92,41 +94,45 @@ export function TaskBoard({
 
   const handleDragOver = (
     e: React.DragEvent<HTMLDivElement>,
-    colStatus: TaskStatus
+    status: TaskStatus
   ) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    if (dragOverCol !== colStatus) {
-      setDragOverCol(colStatus);
+    if (dragOverCol !== status) {
+      setDragOverCol(status);
     }
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+    const related = e.relatedTarget as HTMLElement | null;
+    if (!related || !e.currentTarget.contains(related)) {
       setDragOverCol(null);
     }
   };
 
   const handleDrop = async (
     e: React.DragEvent<HTMLDivElement>,
-    colStatus: TaskStatus
+    targetStatus: TaskStatus
   ) => {
     e.preventDefault();
     setDragOverCol(null);
+    const taskId = e.dataTransfer.getData("text/plain") || draggingTaskId;
     setDraggingTaskId(null);
 
-    const taskId = e.dataTransfer.getData("text/plain");
     if (!taskId) return;
 
-    await onStatusChange(taskId, colStatus);
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task || task.status === targetStatus) return;
+
+    await onStatusChange(taskId, targetStatus);
   };
 
   return (
     <div className="devflow-task-board" aria-label="Kanban task board">
       {COLUMNS.map((col) => {
         const colTaskList = columnTasks[col.status];
-        const Icon = col.icon;
         const isOver = dragOverCol === col.status;
+        const Icon = col.icon;
 
         return (
           <div
@@ -183,6 +189,7 @@ export function TaskBoard({
                       draggable={true}
                       onDragStart={(e) => handleDragStart(e, task)}
                       onDragEnd={handleDragEnd}
+                      isHighlighted={task.id === highlightTaskId}
                       className={isBeingDragged ? "is-dragging" : ""}
                     />
                   );

@@ -33,6 +33,7 @@ export interface ProjectWorkspaceProps {
   userId: string;
   project: DevProject;
   projects: DevProject[];
+  highlightTaskId?: string | null;
   onBack: () => void;
   onEditProject: (project: DevProject) => void;
 }
@@ -51,6 +52,7 @@ export function ProjectWorkspace({
   userId,
   project,
   projects,
+  highlightTaskId,
   onBack,
   onEditProject,
 }: ProjectWorkspaceProps) {
@@ -505,6 +507,7 @@ export function ProjectWorkspace({
             githubLinksMap={githubLinksMap}
             taskTimeMap={taskTimeMap}
             activeSession={activeSession}
+            highlightTaskId={highlightTaskId}
             onStartSession={handleStartSession}
             onEdit={(t) => setEditingTask(t)}
             onDelete={handleDeleteTask}

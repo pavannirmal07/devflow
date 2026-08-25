@@ -40,6 +40,7 @@ export interface TaskCardProps {
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
+  isHighlighted?: boolean;
   className?: string;
 }
 
@@ -69,11 +70,23 @@ export function TaskCard({
   draggable = false,
   onDragStart,
   onDragEnd,
+  isHighlighted = false,
   className = "",
 }: TaskCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [moveToOpen, setMoveToOpen] = useState(false);
+
+  useEffect(() => {
+    if (isHighlighted && cardRef.current) {
+      cardRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+    }
+  }, [isHighlighted]);
 
   const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -187,7 +200,8 @@ export function TaskCard({
 
   return (
     <div
-      className={`devflow-task-card ${className}`.trim()}
+      ref={cardRef}
+      className={`devflow-task-card ${isHighlighted ? "is-highlighted" : ""} ${className}`.trim()}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}

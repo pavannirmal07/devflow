@@ -12,6 +12,7 @@ import "../projects.css";
 export interface ProjectsPageProps {
   userId: string;
   selectedProjectId?: string | null;
+  highlightTaskId?: string | null;
   onSelectProject?: (projectId: string | null) => void;
 }
 
@@ -20,6 +21,7 @@ type FilterStatus = "all" | ProjectStatus;
 export function ProjectsPage({
   userId,
   selectedProjectId: propSelectedProjectId,
+  highlightTaskId,
   onSelectProject,
 }: ProjectsPageProps) {
   const {
@@ -89,6 +91,7 @@ export function ProjectsPage({
           userId={userId}
           project={currentProject}
           projects={projects}
+          highlightTaskId={highlightTaskId}
           onBack={handleBackToProjects}
           onEditProject={(p) => setEditingProject(p)}
         />
