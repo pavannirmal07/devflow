@@ -7,7 +7,8 @@ import { useTasks } from "../useTasks";
 import { TaskCard } from "../components/TaskCard";
 import { CreateTaskModal } from "../components/CreateTaskModal";
 import { EditTaskModal } from "../components/EditTaskModal";
-import type { DevTask, TaskStatus } from "../types";
+import type { DevTask, TaskDueDateFilter, TaskStatus } from "../types";
+import { isTaskDueThisWeek, isTaskDueToday, isTaskOverdue } from "../utils/dueDate";
 import "../tasks.css";
 
 export interface TasksPageProps {
@@ -36,6 +37,7 @@ export function TasksPage({ userId }: TasksPageProps) {
   const { activeSession, startSession } = useSessions(userId);
 
   const [activeStatusFilter, setActiveStatusFilter] = useState<FilterStatus>("all");
+  const [activeDateFilter, setActiveDateFilter] = useState<TaskDueDateFilter>("all");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<DevTask | null>(null);
@@ -52,17 +54,37 @@ export function TasksPage({ userId }: TasksPageProps) {
     return map;
   }, [projects]);
 
-  // Counts for status pills
+  // Counts for status pills and date intelligence (single pass O(N) scan)
   const counts = useMemo(() => {
+    let todo = 0;
+    let in_progress = 0;
+    let completed = 0;
+    let overdue = 0;
+    let today = 0;
+    let thisWeek = 0;
+
+    for (const t of tasks) {
+      if (t.status === "todo") todo++;
+      else if (t.status === "in_progress") in_progress++;
+      else if (t.status === "completed") completed++;
+
+      if (isTaskOverdue(t)) overdue++;
+      if (isTaskDueToday(t)) today++;
+      if (isTaskDueThisWeek(t)) thisWeek++;
+    }
+
     return {
       all: tasks.length,
-      todo: tasks.filter((t) => t.status === "todo").length,
-      in_progress: tasks.filter((t) => t.status === "in_progress").length,
-      completed: tasks.filter((t) => t.status === "completed").length,
+      todo,
+      in_progress,
+      completed,
+      overdue,
+      today,
+      thisWeek,
     };
   }, [tasks]);
 
-  // Filtered tasks based on status and project
+  // Filtered tasks based on status, project, and intelligent due date
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const matchesStatus =
@@ -72,9 +94,16 @@ export function TasksPage({ userId }: TasksPageProps) {
         (selectedProjectId === "none"
           ? !task.project_id
           : task.project_id === selectedProjectId);
-      return matchesStatus && matchesProject;
+      const matchesDate =
+        activeDateFilter === "all" ||
+        (activeDateFilter === "today" && isTaskDueToday(task)) ||
+        (activeDateFilter === "this_week" && isTaskDueThisWeek(task)) ||
+        (activeDateFilter === "overdue" && isTaskOverdue(task));
+
+      return matchesStatus && matchesProject && matchesDate;
     });
-  }, [tasks, activeStatusFilter, selectedProjectId]);
+  }, [tasks, activeStatusFilter, selectedProjectId, activeDateFilter]);
+
 
   const handleDelete = async (taskId: string) => {
     setDeletingTaskId(taskId);
@@ -245,25 +274,54 @@ export function TasksPage({ userId }: TasksPageProps) {
           </button>
         </div>
 
-        {projects.length > 0 && (
-          <div className="devflow-tasks-project-filter">
+        <div className="devflow-tasks-secondary-filters">
+          <div className="devflow-tasks-date-filter">
             <select
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="devflow-task-select text-xs py-1.5"
-              aria-label="Filter tasks by project"
+              value={activeDateFilter}
+              onChange={(e) => setActiveDateFilter(e.target.value as TaskDueDateFilter)}
+              className={`devflow-task-select text-xs py-1.5 ${
+                activeDateFilter === "overdue"
+                  ? "is-overdue"
+                  : activeDateFilter === "today"
+                  ? "is-today"
+                  : ""
+              }`}
+              aria-label="Filter tasks by due date"
             >
-              <option value="all">All Projects</option>
-              <option value="none">No Project</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
+              <option value="all">Date: All</option>
+              <option value="today">
+                Date: Today {counts.today > 0 ? `(${counts.today})` : ""}
+              </option>
+              <option value="this_week">
+                Date: This Week {counts.thisWeek > 0 ? `(${counts.thisWeek})` : ""}
+              </option>
+              <option value="overdue">
+                Date: Overdue {counts.overdue > 0 ? `(${counts.overdue})` : ""}
+              </option>
             </select>
           </div>
-        )}
+
+          {projects.length > 0 && (
+            <div className="devflow-tasks-project-filter">
+              <select
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="devflow-task-select text-xs py-1.5"
+                aria-label="Filter tasks by project"
+              >
+                <option value="all">All Projects</option>
+                <option value="none">No Project</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
+
 
       {/* Main Content Area */}
       {loading ? (

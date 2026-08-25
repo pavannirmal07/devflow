@@ -2,6 +2,9 @@ export type TaskStatus = "todo" | "in_progress" | "completed";
 
 export type TaskPriority = "low" | "medium" | "high" | "critical";
 
+export type TaskDueDateFilter = "all" | "today" | "this_week" | "overdue";
+
+
 export interface DevTask {
   id: string;
   user_id: string;

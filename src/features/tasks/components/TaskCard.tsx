@@ -4,6 +4,7 @@ import {
   Activity,
   CheckCircle2,
   Calendar,
+  AlertCircle,
   Pencil,
   Trash2,
   Timer,
@@ -19,6 +20,7 @@ import { TaskQuickSubtasksPopover } from "./TaskQuickSubtasksPopover";
 import { TaskCardGitHubBadge } from "../../github/components/TaskCardGitHubBadge";
 import type { TaskGitHubLink } from "../../github/types";
 import { computeSessionDuration, formatDuration } from "../utils/duration";
+import { isTaskOverdue, isTaskDueToday, formatDueDateSafe } from "../utils/dueDate";
 
 export interface TaskCardProps {
   task: DevTask;
@@ -44,13 +46,6 @@ function formatDate(isoString: string): string {
   });
 }
 
-function formatDueDate(dateString: string): string {
-  const date = new Date(dateString + "T00:00:00");
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-}
 
 export function TaskCard({
   task,
@@ -295,16 +290,49 @@ export function TaskCard({
         <div className="devflow-task-card-footer">
           <div className="devflow-task-card-meta">
             {task.due_date ? (
-              <div className="devflow-task-due-date" title={`Due: ${task.due_date}`}>
-                <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
-                <span>Due {formatDueDate(task.due_date)}</span>
-              </div>
+              (() => {
+                const isOverdue = isTaskOverdue(task);
+                const isDueToday = isTaskDueToday(task);
+
+                return (
+                  <div
+                    className={`devflow-task-due-date ${
+                      isOverdue ? "is-overdue" : isDueToday ? "is-today" : ""
+                    }`}
+                    title={
+                      isOverdue
+                        ? `Overdue: Due on ${formatDueDateSafe(task.due_date)}`
+                        : isDueToday
+                        ? "Due Today"
+                        : `Due: ${formatDueDateSafe(task.due_date)}`
+                    }
+                  >
+                    {isOverdue ? (
+                      <>
+                        <AlertCircle className="size-3.5 shrink-0 text-destructive" />
+                        <span>Overdue ({formatDueDateSafe(task.due_date)})</span>
+                      </>
+                    ) : isDueToday ? (
+                      <>
+                        <Calendar className="size-3.5 shrink-0 text-amber-500" />
+                        <span>Due Today</span>
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
+                        <span>Due {formatDueDateSafe(task.due_date)}</span>
+                      </>
+                    )}
+                  </div>
+                );
+              })()
             ) : (
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span>Updated {formatDate(task.updated_at)}</span>
               </div>
             )}
           </div>
+
 
           <div className="devflow-task-card-actions">
             {confirmDelete ? (

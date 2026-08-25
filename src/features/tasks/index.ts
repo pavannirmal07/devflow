@@ -2,7 +2,9 @@ export * from "./types";
 export * from "./tasks";
 export * from "./subtasks";
 export * from "./utils/duration";
+export * from "./utils/dueDate";
 export * from "./useTasks";
+
 export * from "./useSubtasks";
 export * from "./components/TaskCard";
 export * from "./components/SubtaskList";
