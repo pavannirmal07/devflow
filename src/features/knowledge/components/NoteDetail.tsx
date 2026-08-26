@@ -1,11 +1,17 @@
 import { useState } from "react";
 import {
+  AlertCircle,
   ArrowLeft,
   Bookmark,
   BookmarkCheck,
   Calendar,
+  CircleDot,
   Code2,
+  ExternalLink,
   FolderKanban,
+  GitBranch,
+  GitCommit,
+  GitPullRequest,
   Lightbulb,
   ListTodo,
   Pencil,
@@ -19,11 +25,14 @@ import { Button } from "@/components/ui/button";
 import type { KnowledgeNote } from "../types";
 import type { DevProject } from "@/features/projects";
 import type { DevTask } from "@/features/tasks";
+import type { TaskGitHubLink } from "@/features/github/types";
+import { GitHubIcon } from "@/features/github/components/GitHubIcon";
 
 export interface NoteDetailProps {
   note: KnowledgeNote;
   projects?: DevProject[];
   tasks?: DevTask[];
+  githubLinksMap?: Record<string, TaskGitHubLink[]>;
   onBack: () => void;
   onEdit: (note: KnowledgeNote) => void;
   onDelete: (noteId: string) => Promise<void>;
@@ -47,6 +56,7 @@ export function NoteDetail({
   note,
   projects = [],
   tasks = [],
+  githubLinksMap = {},
   onBack,
   onEdit,
   onDelete,
@@ -64,6 +74,12 @@ export function NoteDetail({
   const relatedTask = note.task_id
     ? tasks.find((t) => t.id === note.task_id)
     : null;
+
+  const taskGitHubLinks = note.task_id ? githubLinksMap[note.task_id] || [] : [];
+  const issueLink = taskGitHubLinks.find((l) => l.link_type === "issue");
+  const branchLink = taskGitHubLinks.find((l) => l.link_type === "branch");
+  const prLink = taskGitHubLinks.find((l) => l.link_type === "pull_request");
+  const commitLinks = taskGitHubLinks.filter((l) => l.link_type === "commit");
 
   const categoryClass = `is-${(note.category || "other").toLowerCase()}`;
 
@@ -265,6 +281,112 @@ export function NoteDetail({
           </div>
         </div>
       </div>
+
+      {/* GitHub Context Strip (only when linked task has GitHub associations) */}
+      {taskGitHubLinks.length > 0 && (
+        <div className="devflow-note-github-context p-3 rounded-xl border border-border bg-code-bg/60 flex flex-col gap-2 my-1">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <GitHubIcon className="size-3.5 text-foreground" />
+              <span className="text-xs font-semibold text-foreground">
+                GitHub Context
+              </span>
+            </div>
+            {relatedProject?.github_owner && relatedProject?.github_repo && (
+              <span className="text-[11px] text-muted-foreground font-mono">
+                {relatedProject.github_owner}/{relatedProject.github_repo}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            {/* Issue */}
+            {issueLink && (
+              <a
+                href={issueLink.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-border bg-background hover:border-accent/50 text-foreground transition-colors font-medium"
+                title={
+                  issueLink.metadata?.issue_state === "unavailable"
+                    ? `Issue ${issueLink.name} (no longer available on GitHub)`
+                    : `Open Issue ${issueLink.name} on GitHub`
+                }
+              >
+                {issueLink.metadata?.issue_state === "unavailable" ? (
+                  <AlertCircle className="size-3.5 text-amber-500 shrink-0" />
+                ) : (
+                  <CircleDot
+                    className={`size-3.5 shrink-0 ${issueLink.metadata?.issue_state === "closed" ? "text-purple-400" : "text-emerald-500"}`}
+                  />
+                )}
+                <span>{issueLink.name}</span>
+                {issueLink.metadata?.issue_state === "unavailable" && (
+                  <span className="devflow-issue-badge text-[9px] py-0 px-1 is-unavailable">
+                    UNAVAILABLE
+                  </span>
+                )}
+                <ExternalLink className="size-2.5 opacity-60 ml-0.5" />
+              </a>
+            )}
+
+            {/* Branch */}
+            {branchLink && (
+              <a
+                href={branchLink.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-border bg-background hover:border-accent/50 text-foreground transition-colors font-mono"
+                title={`Open branch ${branchLink.name} on GitHub`}
+              >
+                <GitBranch className="size-3.5 text-accent" />
+                <span>{branchLink.name}</span>
+                <ExternalLink className="size-2.5 opacity-60 ml-0.5" />
+              </a>
+            )}
+
+            {/* Pull Request */}
+            {prLink && (
+              <a
+                href={prLink.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-border bg-background hover:border-accent/50 text-foreground transition-colors font-medium"
+                title={`Open PR ${prLink.name} on GitHub`}
+              >
+                <GitPullRequest
+                  className={`size-3.5 ${prLink.metadata?.pr_state === "merged" ? "text-purple-400" : prLink.metadata?.pr_state === "closed" ? "text-muted-foreground" : "text-emerald-500"}`}
+                />
+                <span>{prLink.name}</span>
+                {prLink.metadata?.pr_state && (
+                  <span
+                    className={`devflow-pr-badge text-[9px] py-0 px-1 is-${prLink.metadata.pr_state}`}
+                  >
+                    {String(prLink.metadata.pr_state).toUpperCase()}
+                  </span>
+                )}
+                <ExternalLink className="size-2.5 opacity-60 ml-0.5" />
+              </a>
+            )}
+
+            {/* Commits */}
+            {commitLinks.map((commit) => (
+              <a
+                key={commit.id}
+                href={commit.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-border bg-background hover:border-accent/50 text-foreground transition-colors font-mono text-[11px]"
+                title={`Open commit ${commit.name} on GitHub`}
+              >
+                <GitCommit className="size-3 text-muted-foreground" />
+                <span>{commit.name}</span>
+                <ExternalLink className="size-2.5 opacity-60 ml-0.5" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* =========================================================================
          STRUCTURED ENGINEERING JOURNAL SECTIONS

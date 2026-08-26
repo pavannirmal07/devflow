@@ -710,6 +710,7 @@ export function ProjectWorkspace({
         defaultProjectId={project.id}
         onClose={() => setIsCreateTaskOpen(false)}
         onSubmit={createTask}
+        onLinkCreated={updateTaskGitHubLinks}
       />
 
       {/* Edit Task Modal */}

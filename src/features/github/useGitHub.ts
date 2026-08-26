@@ -14,12 +14,16 @@ import {
   saveInstallation as saveInstallationDb,
   unlinkGitHubItem,
   updateProjectGitHubRepo,
+  updateTaskGitHubLinkMetadata as updateTaskGitHubLinkMetadataDb,
 } from "./github";
 import {
   connectInstallation as connectInstallationApi,
   getBranches as getBranchesApi,
   getCommits as getCommitsApi,
   getInstallUrl as getInstallUrlApi,
+  getIssue as getIssueApi,
+  getIssues as getIssuesApi,
+  getPullRequest as getPullRequestApi,
   getPullRequests as getPullRequestsApi,
   getRepositories as getRepositoriesApi,
   listAppInstallations as listAppInstallationsApi,
@@ -192,6 +196,42 @@ export function useGitHub(options?: UseGitHubOptions) {
     []
   );
 
+  const fetchPullRequest = useCallback(
+    async (
+      installationId: number,
+      owner: string,
+      repo: string,
+      pullNumber: number
+    ) => {
+      return getPullRequestApi(installationId, owner, repo, pullNumber);
+    },
+    []
+  );
+
+  const fetchIssues = useCallback(
+    async (
+      installationId: number,
+      owner: string,
+      repo: string,
+      state: "open" | "closed" | "all" = "open"
+    ) => {
+      return getIssuesApi(installationId, owner, repo, state);
+    },
+    []
+  );
+
+  const fetchIssue = useCallback(
+    async (
+      installationId: number,
+      owner: string,
+      repo: string,
+      issueNumber: number
+    ) => {
+      return getIssueApi(installationId, owner, repo, issueNumber);
+    },
+    []
+  );
+
   const fetchCommits = useCallback(
     async (installationId: number, owner: string, repo: string, sha?: string) => {
       return getCommitsApi(installationId, owner, repo, sha);
@@ -245,7 +285,11 @@ export function useGitHub(options?: UseGitHubOptions) {
       if (created) {
         setTaskLinks((prev) => {
           let updated: TaskGitHubLink[];
-          if (created.link_type === "branch" || created.link_type === "pull_request") {
+          if (
+            created.link_type === "branch" ||
+            created.link_type === "pull_request" ||
+            created.link_type === "issue"
+          ) {
             updated = [
               ...prev.filter((l) => l.link_type !== created.link_type),
               created,
@@ -260,6 +304,28 @@ export function useGitHub(options?: UseGitHubOptions) {
       }
 
       return { link: created, error: null };
+    },
+    [onLinksChange]
+  );
+
+  const syncTaskLink = useCallback(
+    async (
+      linkId: string,
+      newMetadata: Record<string, unknown>
+    ): Promise<{ link: TaskGitHubLink | null; error: Error | null }> => {
+      const res = await updateTaskGitHubLinkMetadataDb(linkId, newMetadata);
+      if (!res.error && res.link) {
+        const updated = res.link;
+        setTaskLinks((prev) => {
+          const next = prev.map((l) => (l.id === updated.id ? updated : l));
+          onLinksChange?.(next);
+          return next;
+        });
+        setError(null);
+      } else if (res.error) {
+        setError(res.error.message);
+      }
+      return res;
     },
     [onLinksChange]
   );
@@ -303,11 +369,14 @@ export function useGitHub(options?: UseGitHubOptions) {
     fetchRepositories,
     fetchBranches,
     fetchPullRequests,
+    fetchPullRequest,
+    fetchIssues,
+    fetchIssue,
     fetchCommits,
     connectProjectRepository,
     disconnectProjectRepository,
     linkItem,
+    syncTaskLink,
     unlinkItem,
   };
 }
-

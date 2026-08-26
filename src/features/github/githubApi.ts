@@ -6,6 +6,7 @@ import {
 import type {
   GitHubBranch,
   GitHubCommit,
+  GitHubIssue,
   GitHubPullRequest,
   GitHubRepository,
 } from "./types";
@@ -14,12 +15,19 @@ interface FunctionResponse<T> {
   data?: T;
   error?: string;
   configured?: boolean;
+  status?: number;
 }
 
 async function invokeGitHubFunction<T>(
   action: string,
   params: Record<string, string>
-): Promise<{ data: T | null; error: Error | null; notConfigured?: boolean }> {
+): Promise<{
+  data: T | null;
+  error: Error | null;
+  notConfigured?: boolean;
+  statusCode?: number;
+  isUnavailable?: boolean;
+}> {
   try {
     const {
       data: { session },
@@ -54,6 +62,12 @@ async function invokeGitHubFunction<T>(
       // Non-JSON response
     }
 
+    const statusCode = resBody?.status || res.status;
+    const isUnavailable =
+      statusCode === 404 ||
+      statusCode === 410 ||
+      Boolean(resBody?.error?.includes("410") || resBody?.error?.includes("404"));
+
     if (res.status === 503 || resBody?.configured === false) {
       return {
         data: null,
@@ -62,6 +76,7 @@ async function invokeGitHubFunction<T>(
             "GitHub integration isn't configured on the server yet."
         ),
         notConfigured: true,
+        statusCode: 503,
       };
     }
 
@@ -72,6 +87,8 @@ async function invokeGitHubFunction<T>(
       return {
         data: null,
         error: new Error(errorMessage),
+        statusCode,
+        isUnavailable,
       };
     }
 
@@ -79,12 +96,16 @@ async function invokeGitHubFunction<T>(
       return {
         data: null,
         error: new Error(resBody.error),
+        statusCode,
+        isUnavailable,
       };
     }
 
     return {
       data: (resBody?.data ?? null) as T | null,
       error: null,
+      statusCode,
+      isUnavailable: false,
     };
   } catch (err) {
     return {
@@ -329,5 +350,136 @@ export async function getCommits(
   return {
     commits: Array.isArray(data) ? data : [],
     error: null,
+  };
+}
+
+export async function getIssues(
+  installationId: number,
+  owner: string,
+  repo: string,
+  state: "open" | "closed" | "all" = "open"
+): Promise<{ issues: GitHubIssue[]; error: Error | null }> {
+  if (!installationId || !owner || !repo) {
+    return {
+      issues: [],
+      error: new Error("Installation ID, repository owner, and name are required"),
+    };
+  }
+
+  const { data, error } = await invokeGitHubFunction<GitHubIssue[]>(
+    "issues",
+    {
+      installation_id: String(installationId),
+      owner,
+      repo,
+      state,
+    }
+  );
+
+  if (error) {
+    return { issues: [], error };
+  }
+
+  return {
+    issues: Array.isArray(data) ? data : [],
+    error: null,
+  };
+}
+
+export async function getPullRequest(
+  installationId: number,
+  owner: string,
+  repo: string,
+  pullNumber: number
+): Promise<{
+  pullRequest: GitHubPullRequest | null;
+  error: Error | null;
+  statusCode?: number;
+  isUnavailable?: boolean;
+}> {
+  if (!installationId || !owner || !repo || !pullNumber) {
+    return {
+      pullRequest: null,
+      error: new Error("Installation ID, repository owner, repo, and pull number are required"),
+    };
+  }
+
+  const { data, error, statusCode, isUnavailable } =
+    await invokeGitHubFunction<GitHubPullRequest>("pull_detail", {
+      installation_id: String(installationId),
+      owner,
+      repo,
+      number: String(pullNumber),
+    });
+
+  const unavailable =
+    Boolean(isUnavailable) ||
+    statusCode === 404 ||
+    statusCode === 410 ||
+    Boolean(error?.message?.includes("410") || error?.message?.includes("404"));
+
+  if (error) {
+    return {
+      pullRequest: null,
+      error,
+      statusCode,
+      isUnavailable: unavailable,
+    };
+  }
+
+  return {
+    pullRequest: data || null,
+    error: null,
+    statusCode,
+    isUnavailable: false,
+  };
+}
+
+export async function getIssue(
+  installationId: number,
+  owner: string,
+  repo: string,
+  issueNumber: number
+): Promise<{
+  issue: GitHubIssue | null;
+  error: Error | null;
+  statusCode?: number;
+  isUnavailable?: boolean;
+}> {
+  if (!installationId || !owner || !repo || !issueNumber) {
+    return {
+      issue: null,
+      error: new Error("Installation ID, repository owner, repo, and issue number are required"),
+    };
+  }
+
+  const { data, error, statusCode, isUnavailable } =
+    await invokeGitHubFunction<GitHubIssue>("issue_detail", {
+      installation_id: String(installationId),
+      owner,
+      repo,
+      number: String(issueNumber),
+    });
+
+  const unavailable =
+    Boolean(isUnavailable) ||
+    statusCode === 404 ||
+    statusCode === 410 ||
+    Boolean(error?.message?.includes("410") || error?.message?.includes("404"));
+
+  if (error) {
+    return {
+      issue: null,
+      error,
+      statusCode,
+      isUnavailable: unavailable,
+    };
+  }
+
+  return {
+    issue: data || null,
+    error: null,
+    statusCode,
+    isUnavailable: false,
   };
 }

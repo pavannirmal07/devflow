@@ -399,8 +399,11 @@ serve(async (req: Request) => {
       );
     }
 
+    const state = url.searchParams.get("state") || "all";
+    const itemNumber = url.searchParams.get("number") || url.searchParams.get("issue_number") || url.searchParams.get("pull_number");
+
     // =========================================================================
-    // Repositories, Branches, PRs, Commits — requires installation verification
+    // Repositories, Branches, PRs, Commits, Issues — requires installation verification
     // =========================================================================
     if (!installationIdParam) {
       return new Response(
@@ -458,7 +461,37 @@ serve(async (req: Request) => {
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-        targetUrl = `https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=50`;
+        targetUrl = `https://api.github.com/repos/${owner}/${repo}/pulls?state=${encodeURIComponent(state)}&per_page=50`;
+        break;
+
+      case "pull_detail":
+        if (!owner || !repo || !itemNumber) {
+          return new Response(
+            JSON.stringify({ error: "owner, repo, and number parameters required for pull_detail" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        targetUrl = `https://api.github.com/repos/${owner}/${repo}/pulls/${encodeURIComponent(itemNumber)}`;
+        break;
+
+      case "issues":
+        if (!owner || !repo) {
+          return new Response(
+            JSON.stringify({ error: "owner and repo parameters required for issues" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        targetUrl = `https://api.github.com/repos/${owner}/${repo}/issues?state=${encodeURIComponent(state)}&per_page=50`;
+        break;
+
+      case "issue_detail":
+        if (!owner || !repo || !itemNumber) {
+          return new Response(
+            JSON.stringify({ error: "owner, repo, and number parameters required for issue_detail" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        targetUrl = `https://api.github.com/repos/${owner}/${repo}/issues/${encodeURIComponent(itemNumber)}`;
         break;
 
       case "commits":
@@ -493,8 +526,12 @@ serve(async (req: Request) => {
     }
 
     const githubData = await githubRes.json();
+    const responseData =
+      action === "issues" && Array.isArray(githubData)
+        ? githubData.filter((item: { pull_request?: unknown }) => !item.pull_request)
+        : githubData;
 
-    return new Response(JSON.stringify({ data: githubData }), {
+    return new Response(JSON.stringify({ data: responseData }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -66,7 +66,28 @@ export interface GitHubCommit {
   } | null;
 }
 
-export type TaskGitHubLinkType = "branch" | "pull_request" | "commit";
+export interface GitHubIssue {
+  id: number;
+  number: number;
+  title: string;
+  state: "open" | "closed";
+  html_url: string;
+  body: string | null;
+  user: {
+    login: string;
+    avatar_url?: string;
+  };
+  labels?: Array<{
+    id: number;
+    name: string;
+    color: string;
+    description?: string | null;
+  }>;
+  created_at: string;
+  closed_at: string | null;
+}
+
+export type TaskGitHubLinkType = "branch" | "pull_request" | "commit" | "issue";
 
 export interface TaskGitHubLink {
   id: string;
@@ -77,11 +98,15 @@ export interface TaskGitHubLink {
   url: string;
   metadata: {
     pr_number?: number;
-    pr_state?: "open" | "closed" | "merged";
+    pr_state?: "open" | "closed" | "merged" | "unavailable";
     commit_sha?: string;
     commit_author?: string;
     branch_name?: string;
     repo_full_name?: string;
+    issue_number?: number;
+    issue_state?: "open" | "closed" | "unavailable";
+    issue_labels?: string[];
+    issue_author?: string;
     [key: string]: unknown;
   };
   created_at: string;

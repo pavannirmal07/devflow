@@ -130,7 +130,13 @@ export function AppShell({
 
   // Global state hooks for command palette
   const { projects } = useProjects(userId);
-  const { tasks, createTask, refreshTasks } = useTasks(userId);
+  const {
+    tasks,
+    createTask,
+    refreshTasks,
+    githubLinksMap,
+    updateTaskGitHubLinks,
+  } = useTasks(userId);
   const { activeSession, startSession } = useSessions(userId);
   const { notes: knowledgeNotes, createNote: createKnowledgeNote } = useKnowledge(userId);
 
@@ -412,6 +418,7 @@ export function AppShell({
         tasks={tasks}
         projects={projects}
         knowledgeNotes={knowledgeNotes}
+        githubLinksMap={githubLinksMap}
         activeSession={activeSession}
         onNavigate={handleSelectNav}
         onStartFocus={handleStartFocusFromPalette}
@@ -425,6 +432,7 @@ export function AppShell({
         projects={projects}
         onClose={() => setIsCreateTaskOpen(false)}
         onSubmit={createTask}
+        onLinkCreated={updateTaskGitHubLinks}
       />
 
       {/* Global Create Technical Note Modal */}

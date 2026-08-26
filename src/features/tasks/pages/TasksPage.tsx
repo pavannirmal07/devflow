@@ -512,6 +512,7 @@ export function TasksPage({ userId, highlightTaskId, onNavigateToKnowledge }: Ta
         projects={projects}
         onClose={() => setIsCreateOpen(false)}
         onSubmit={createTask}
+        onLinkCreated={updateTaskGitHubLinks}
       />
 
       {/* Edit Task Modal */}
