@@ -60,6 +60,42 @@
   gap: 8px;
 }
 
+.devflow-github-search-input {
+  width: 100%;
+  background: var(--code-bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-h) !important;
+  border-radius: 8px;
+  padding: 7px 12px 7px 34px !important;
+  font-size: 13px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.devflow-github-search-input::placeholder {
+  color: var(--text) !important;
+  opacity: 0.75;
+}
+
+.devflow-github-search-input:focus {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25) !important;
+}
+
+.devflow-github-unlinked-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .devflow-github-input {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -75,8 +111,8 @@
 }
 
 .devflow-github-empty-state {
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
   background: var(--bg);
   border: 1px dashed var(--border);
 }
