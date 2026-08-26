@@ -51,10 +51,6 @@ export function ProjectCard({
         }
       }}
     >
-      <div
-        className="devflow-project-top-strip"
-        style={{ backgroundColor: projectColor }}
-      />
       <div className="devflow-project-card-body">
         <div className="devflow-project-card-header">
           <div className="devflow-project-title-wrapper">

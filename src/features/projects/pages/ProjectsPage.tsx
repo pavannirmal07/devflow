@@ -275,6 +275,7 @@ export function ProjectsPage({
 
       {/* Create Project Modal */}
       <CreateProjectModal
+        userId={userId}
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSubmit={createProject}

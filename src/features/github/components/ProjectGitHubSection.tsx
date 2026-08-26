@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   AlertCircle,
   Check,
@@ -9,7 +9,9 @@ import {
   Lock,
   Plus,
   RefreshCw,
+  Search,
   Unlink,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGitHub } from "../useGitHub";
@@ -47,6 +49,7 @@ export function ProjectGitHubSection({
   const [loadingRepos, setLoadingRepos] = useState(false);
   const [isSelectingRepo, setIsSelectingRepo] = useState(false);
   const [repoError, setRepoError] = useState<string | null>(null);
+  const [repoSearchQuery, setRepoSearchQuery] = useState("");
 
   // App Installation Flow States
   const [isInstallingApp, setIsInstallingApp] = useState(false);
@@ -64,6 +67,11 @@ export function ProjectGitHubSection({
   const [manualInstId, setManualInstId] = useState("");
   const [connectingInstId, setConnectingInstId] = useState<number | null>(null);
 
+  const activeInstId =
+    selectedInstId ||
+    config.github_installation_id ||
+    (installations.length > 0 ? installations[0].installation_id : null);
+
   const loadReposForInstallation = useCallback(
     async (instId: number) => {
       setLoadingRepos(true);
@@ -80,6 +88,31 @@ export function ProjectGitHubSection({
     },
     [fetchRepositories]
   );
+
+  // Automatically load repositories when selecting mode is open and an active installation ID exists
+  useEffect(() => {
+    if (!isSelectingRepo || !activeInstId) {
+      return;
+    }
+
+    let isMounted = true;
+
+    fetchRepositories(activeInstId).then(({ repositories: repos, error }) => {
+      if (!isMounted) return;
+      if (error) {
+        setRepoError(error.message);
+        setRepositories([]);
+      } else {
+        setRepositories(repos);
+        setRepoError(null);
+      }
+      setLoadingRepos(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isSelectingRepo, activeInstId, fetchRepositories]);
 
   // Connect a specific installation ID to the user's account
   const handleConnectInstallationId = useCallback(
@@ -100,10 +133,9 @@ export function ProjectGitHubSection({
         setShowManualConnect(false);
         setManualInstId("");
         setIsSelectingRepo(true);
-        void loadReposForInstallation(instId);
       }
     },
-    [connectInstallation, refreshInstallations, loadReposForInstallation]
+    [connectInstallation, refreshInstallations]
   );
 
   // Check URL parameters for post-installation callback (e.g. ?installation_id=123)
@@ -132,14 +164,8 @@ export function ProjectGitHubSection({
 
   const handleStartSelecting = () => {
     setIsSelectingRepo(true);
-    const targetInstId =
-      selectedInstId ||
-      config.github_installation_id ||
-      installations[0]?.installation_id;
-    if (targetInstId) {
-      setSelectedInstId(targetInstId);
-      void loadReposForInstallation(targetInstId);
-    }
+    setRepoSearchQuery("");
+    setLoadingRepos(true);
   };
 
   const handleSelectRepository = (repo: GitHubRepository) => {
@@ -148,9 +174,10 @@ export function ProjectGitHubSection({
       github_owner: repo.owner.login,
       github_repo: repo.name,
       github_default_branch: repo.default_branch || "main",
-      github_installation_id: selectedInstId,
+      github_installation_id: activeInstId,
     });
     setIsSelectingRepo(false);
+    setRepoSearchQuery("");
   };
 
   const handleDisconnect = () => {
@@ -162,7 +189,20 @@ export function ProjectGitHubSection({
       github_installation_id: null,
     });
     setIsSelectingRepo(false);
+    setRepoSearchQuery("");
   };
+
+  // Filtered repositories according to user search query
+  const filteredRepositories = useMemo(() => {
+    const q = repoSearchQuery.trim().toLowerCase();
+    if (!q) return repositories;
+    return repositories.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.full_name.toLowerCase().includes(q) ||
+        r.owner.login.toLowerCase().includes(q)
+    );
+  }, [repositories, repoSearchQuery]);
 
   // Discover installations from GitHub App API
   const handleDiscoverAppInstallations = async () => {
@@ -290,15 +330,13 @@ export function ProjectGitHubSection({
             ) : (
               <select
                 id="github-installation-select"
-                value={selectedInstId || ""}
+                value={activeInstId || ""}
                 onChange={(e) => {
                   const val = e.target.value
                     ? parseInt(e.target.value, 10)
                     : null;
                   setSelectedInstId(val);
-                  if (val) {
-                    void loadReposForInstallation(val);
-                  }
+                  setRepoSearchQuery("");
                 }}
                 className="devflow-task-select text-xs py-1.5"
                 disabled={disabled}
@@ -313,9 +351,9 @@ export function ProjectGitHubSection({
             )}
           </div>
 
-          {/* Repositories list */}
-          {selectedInstId && (
-            <div className="flex flex-col gap-1.5 mt-2">
+          {/* Repositories list with Search */}
+          {activeInstId && (
+            <div className="flex flex-col gap-2 mt-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">
                   Available Repositories
@@ -338,6 +376,29 @@ export function ProjectGitHubSection({
                 </Button>
               </div>
 
+              {/* Repository Search Filter Input */}
+              <div className="relative flex items-center">
+                <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search repositories..."
+                  value={repoSearchQuery}
+                  onChange={(e) => setRepoSearchQuery(e.target.value)}
+                  className="devflow-github-search-input"
+                  disabled={disabled || loadingRepos}
+                />
+                {repoSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setRepoSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                    aria-label="Clear search"
+                  >
+                    <X className="size-3" />
+                  </button>
+                )}
+              </div>
+
               {loadingRepos ? (
                 <div className="flex items-center gap-2 py-3 text-xs text-muted-foreground justify-center">
                   <Loader2 className="size-4 animate-spin text-accent" />
@@ -350,29 +411,49 @@ export function ProjectGitHubSection({
                   No repositories found for this account.
                 </p>
               ) : (
-                <div className="devflow-github-repos-list max-h-44 overflow-y-auto flex flex-col gap-1 pr-1">
-                  {repositories.map((repo) => (
-                    <button
-                      key={repo.id}
-                      type="button"
-                      onClick={() => handleSelectRepository(repo)}
-                      className="devflow-github-repo-item flex items-center justify-between p-2 rounded-md hover:bg-code-bg border border-transparent hover:border-border text-left transition-colors"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        {repo.private ? (
-                          <Lock className="size-3 text-muted-foreground shrink-0" />
-                        ) : (
-                          <GitFork className="size-3 text-muted-foreground shrink-0" />
-                        )}
-                        <span className="text-xs font-medium text-foreground truncate">
-                          {repo.full_name}
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-muted-foreground shrink-0 ml-2">
-                        {repo.default_branch}
+                <div className="devflow-github-repos-list max-h-48 overflow-y-auto flex flex-col gap-1 pr-1">
+                  {/* Option to leave unconnected / clear selection */}
+                  <button
+                    type="button"
+                    onClick={handleDisconnect}
+                    className="devflow-github-repo-item flex items-center justify-between p-2 rounded-md hover:bg-code-bg border border-dashed border-border/70 text-left transition-colors text-muted-foreground hover:text-foreground"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Unlink className="size-3 shrink-0 opacity-70" />
+                      <span className="text-xs font-medium truncate">
+                        No repository (leave unconnected)
                       </span>
-                    </button>
-                  ))}
+                    </div>
+                  </button>
+
+                  {filteredRepositories.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-3 text-center italic">
+                      No repositories matching &ldquo;{repoSearchQuery}&rdquo;
+                    </p>
+                  ) : (
+                    filteredRepositories.map((repo) => (
+                      <button
+                        key={repo.id}
+                        type="button"
+                        onClick={() => handleSelectRepository(repo)}
+                        className="devflow-github-repo-item flex items-center justify-between p-2 rounded-md hover:bg-code-bg border border-transparent hover:border-border text-left transition-colors"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {repo.private ? (
+                            <Lock className="size-3 text-muted-foreground shrink-0" />
+                          ) : (
+                            <GitFork className="size-3 text-muted-foreground shrink-0" />
+                          )}
+                          <span className="text-xs font-medium text-foreground truncate">
+                            {repo.full_name}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-muted-foreground shrink-0 ml-2 font-mono">
+                          {repo.default_branch}
+                        </span>
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
             </div>
@@ -384,7 +465,10 @@ export function ProjectGitHubSection({
               variant="ghost"
               size="xs"
               className="text-xs h-7"
-              onClick={() => setIsSelectingRepo(false)}
+              onClick={() => {
+                setIsSelectingRepo(false);
+                setRepoSearchQuery("");
+              }}
             >
               Cancel
             </Button>
@@ -429,15 +513,55 @@ export function ProjectGitHubSection({
             </div>
           </div>
         </div>
+      ) : loadingInstallations ? (
+        /* Loading Installations State */
+        <div className="devflow-github-unlinked-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground py-0.5">
+            <Loader2 className="size-3.5 animate-spin" />
+            <span>Checking GitHub connection...</span>
+          </div>
+        </div>
+      ) : installations.length > 0 ? (
+        /* Account Connected, but No Repository Selected for this Project */
+        <div className="devflow-github-unlinked-card">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <GitHubIcon className="size-4 text-muted-foreground shrink-0" />
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-semibold text-foreground">
+                No repository selected
+              </span>
+              <span className="text-[11.5px] text-muted-foreground truncate">
+                Connected to {installations[0]?.account_login}
+                {installations.length > 1
+                  ? ` (+${installations.length - 1} more)`
+                  : ""}
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            className="devflow-btn-primary h-7 px-3 text-xs shrink-0"
+            onClick={handleStartSelecting}
+            disabled={disabled}
+          >
+            <span>Select Repository</span>
+          </Button>
+        </div>
       ) : (
-        /* Not Connected State */
+        /* No GitHub App Account Connected to User Profile */
         <div className="devflow-github-empty-state flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <p className="text-xs text-muted-foreground">
-              GitHub isn&apos;t connected yet. Connect GitHub to link
-              repositories, branches, pull requests, and commits to your DevFlow
-              tasks.
-            </p>
+          <div className="flex items-start gap-2.5">
+            <GitHubIcon className="size-4 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-0.5">
+              <p className="text-xs font-semibold text-foreground">
+                GitHub App Not Connected
+              </p>
+              <p className="text-[11.5px] text-muted-foreground">
+                Connect the DevFlow GitHub App to link repositories, branches,
+                pull requests, and commits to your projects and tasks.
+              </p>
+            </div>
           </div>
 
           {/* Installation Error Banner */}
@@ -571,28 +695,16 @@ export function ProjectGitHubSection({
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-start">
               <Button
                 type="button"
-                className="devflow-btn-primary h-8 px-3.5 text-xs"
+                className="devflow-btn-primary h-7 px-3 text-xs gap-1.5"
                 onClick={handleInitiateInstall}
                 disabled={disabled}
               >
-                <GitHubIcon className="size-3.5 mr-1.5" />
+                <GitHubIcon className="size-3" />
                 <span>Connect GitHub App</span>
               </Button>
-
-              {installations.length > 0 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="devflow-btn-secondary h-8 px-3 text-xs"
-                  onClick={handleStartSelecting}
-                  disabled={disabled}
-                >
-                  <span>Select Repository</span>
-                </Button>
-              )}
             </div>
           )}
         </div>

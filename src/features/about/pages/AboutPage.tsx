@@ -4,6 +4,13 @@ import { InstagramIcon } from "../components/InstagramIcon";
 import "../about.css";
 
 export function AboutPage() {
+  const appVersion = import.meta.env.VITE_APP_VERSION || "";
+  const displayVersion = appVersion
+    ? appVersion.startsWith("v")
+      ? appVersion
+      : `v${appVersion}`
+    : "";
+
   return (
     <div className="devflow-about-page">
       {/* Page Subtitle Header */}
@@ -96,6 +103,11 @@ export function AboutPage() {
           <div className="devflow-about-row">
             <span className="devflow-about-label">Application</span>
             <span className="devflow-about-val">DevFlow</span>
+          </div>
+
+          <div className="devflow-about-row">
+            <span className="devflow-about-label">Version</span>
+            <span className="devflow-about-val">{displayVersion}</span>
           </div>
         </div>
       </section>
