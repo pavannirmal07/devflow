@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Clock,
   ArrowRightLeft,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -42,6 +43,8 @@ export interface TaskCardProps {
   onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
   isHighlighted?: boolean;
   className?: string;
+  noteCount?: number;
+  onDocumentTechnicalIssue?: (task: DevTask) => void;
 }
 
 function formatDate(isoString: string): string {
@@ -72,6 +75,8 @@ export function TaskCard({
   onDragEnd,
   isHighlighted = false,
   className = "",
+  noteCount,
+  onDocumentTechnicalIssue,
 }: TaskCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -251,6 +256,17 @@ export function TaskCard({
             {/* GitHub Badges */}
             {githubLinks && githubLinks.length > 0 && (
               <TaskCardGitHubBadge links={githubLinks} />
+            )}
+
+            {/* Technical Notes Indicator */}
+            {typeof noteCount === "number" && noteCount > 0 && (
+              <span
+                className="devflow-task-notes-indicator"
+                title={`${noteCount} technical note${noteCount > 1 ? "s" : ""}`}
+              >
+                <BookOpen className="size-3" />
+                <span>{noteCount}</span>
+              </span>
             )}
           </div>
         </div>
@@ -498,6 +514,18 @@ export function TaskCard({
                     title="Start Focus Session for this task"
                   >
                     <Timer className="size-3.5" />
+                  </Button>
+                )}
+                {onDocumentTechnicalIssue && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => onDocumentTechnicalIssue(task)}
+                    aria-label="Document Technical Issue"
+                    title="Document Technical Issue"
+                  >
+                    <BookOpen className="size-3.5 text-accent" />
                   </Button>
                 )}
                 <Button

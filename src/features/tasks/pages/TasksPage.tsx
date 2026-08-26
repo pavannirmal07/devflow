@@ -3,6 +3,7 @@ import { Plus, ListTodo, AlertCircle, RefreshCw, LayoutList, Columns3 } from "lu
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/features/projects";
 import { useSessions } from "@/features/sessions";
+import { useKnowledge, NoteModal, type CreateKnowledgeNoteInput, type KnowledgeNote } from "@/features/knowledge";
 import { useTasks } from "../useTasks";
 import { TaskCard } from "../components/TaskCard";
 import { TaskBoard } from "../components/TaskBoard";
@@ -15,11 +16,12 @@ import "../tasks.css";
 export interface TasksPageProps {
   userId: string;
   highlightTaskId?: string | null;
+  onNavigateToKnowledge?: (noteId?: string) => void;
 }
 
 type FilterStatus = "all" | TaskStatus;
 
-export function TasksPage({ userId, highlightTaskId }: TasksPageProps) {
+export function TasksPage({ userId, highlightTaskId, onNavigateToKnowledge }: TasksPageProps) {
   const {
     tasks,
     subtasksMap,
@@ -37,12 +39,14 @@ export function TasksPage({ userId, highlightTaskId }: TasksPageProps) {
 
   const { projects } = useProjects(userId);
   const { activeSession, startSession } = useSessions(userId);
+  const { notes, createNote } = useKnowledge(userId);
 
   const [activeStatusFilter, setActiveStatusFilter] = useState<FilterStatus>("all");
   const [activeDateFilter, setActiveDateFilter] = useState<TaskDueDateFilter>("all");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<DevTask | null>(null);
+  const [documentingTask, setDocumentingTask] = useState<DevTask | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [sessionWarning, setSessionWarning] = useState<string | null>(null);
@@ -74,6 +78,33 @@ export function TasksPage({ userId, highlightTaskId }: TasksPageProps) {
     });
     return map;
   }, [projects]);
+
+  // Group technical notes by task_id
+  const { taskNotesMap, taskNotesCountMap } = useMemo(() => {
+    const nMap: Record<string, KnowledgeNote[]> = {};
+    const cMap: Record<string, number> = {};
+    for (const note of notes) {
+      if (note.task_id) {
+        if (!nMap[note.task_id]) nMap[note.task_id] = [];
+        nMap[note.task_id].push(note);
+        cMap[note.task_id] = (cMap[note.task_id] || 0) + 1;
+      }
+    }
+    return { taskNotesMap: nMap, taskNotesCountMap: cMap };
+  }, [notes]);
+
+  const handleOpenNote = (noteId: string) => {
+    if (onNavigateToKnowledge) {
+      onNavigateToKnowledge(noteId);
+    } else {
+      window.history.pushState(null, "", `#knowledge/${noteId}`);
+      window.dispatchEvent(new Event("hashchange"));
+    }
+  };
+
+  const handleDocumentIssue = (task: DevTask) => {
+    setDocumentingTask(task);
+  };
 
   // Counts for status pills and date intelligence (single pass O(N) scan)
   const counts = useMemo(() => {
@@ -441,6 +472,8 @@ export function TasksPage({ userId, highlightTaskId }: TasksPageProps) {
           onSubtasksChange={updateTaskSubtasks}
           onStatusChange={handleStatusChange}
           deletingTaskId={deletingTaskId}
+          taskNotesCountMap={taskNotesCountMap}
+          onDocumentTechnicalIssue={handleDocumentIssue}
         />
       ) : (
         <div className="devflow-tasks-grid">
@@ -465,6 +498,8 @@ export function TasksPage({ userId, highlightTaskId }: TasksPageProps) {
                 activeSession={activeSession}
                 onStatusChange={handleStatusChange}
                 isHighlighted={task.id === highlightTaskId}
+                noteCount={taskNotesCountMap[task.id]}
+                onDocumentTechnicalIssue={handleDocumentIssue}
               />
             );
           })}
@@ -493,6 +528,27 @@ export function TasksPage({ userId, highlightTaskId }: TasksPageProps) {
         timeStats={editingTask ? taskTimeMap[editingTask.id] : undefined}
         activeSession={activeSession}
         onStartSession={handleStartFocusSession}
+        taskNotes={editingTask ? taskNotesMap[editingTask.id] || [] : []}
+        onDocumentTechnicalIssue={handleDocumentIssue}
+        onOpenNote={handleOpenNote}
+      />
+
+      {/* Document Technical Issue Modal */}
+      <NoteModal
+        isOpen={Boolean(documentingTask)}
+        onClose={() => setDocumentingTask(null)}
+        projects={projects}
+        tasks={tasks}
+        initialProjectId={documentingTask?.project_id || undefined}
+        initialTaskId={documentingTask?.id || undefined}
+        initialTitle={documentingTask?.title || undefined}
+        onSubmit={async (input) => {
+          const res = await createNote(input as CreateKnowledgeNoteInput);
+          if (res.error) {
+            setActionError(res.error.message);
+          }
+          return res;
+        }}
       />
     </div>
   );

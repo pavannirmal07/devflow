@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { X, AlertCircle } from "lucide-react";
+import { X, AlertCircle, BookOpen, Plus, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { DevProject } from "@/features/projects";
 import type { DevTask, TaskPriority, TaskStatus, TaskSubtask, TaskTimeStats, UpdateTaskInput } from "../types";
 import type { DevSession } from "../../sessions/types";
+import type { KnowledgeNote } from "@/features/knowledge/types";
 import { SubtaskList } from "./SubtaskList";
 import { TaskTimeSection } from "./TaskTimeSection";
 import { TaskGitHubSection } from "../../github/components/TaskGitHubSection";
@@ -26,6 +27,9 @@ export interface EditTaskModalProps {
   timeStats?: TaskTimeStats;
   activeSession?: DevSession | null;
   onStartSession?: (task: DevTask) => void;
+  taskNotes?: KnowledgeNote[];
+  onDocumentTechnicalIssue?: (task: DevTask) => void;
+  onOpenNote?: (noteId: string) => void;
 }
 
 export function EditTaskModal({
@@ -41,6 +45,9 @@ export function EditTaskModal({
   timeStats,
   activeSession,
   onStartSession,
+  taskNotes = [],
+  onDocumentTechnicalIssue,
+  onOpenNote,
 }: EditTaskModalProps) {
   if (!isOpen || !task) return null;
 
@@ -64,6 +71,9 @@ export function EditTaskModal({
       timeStats={timeStats}
       activeSession={activeSession}
       onStartSession={onStartSession}
+      taskNotes={taskNotes}
+      onDocumentTechnicalIssue={onDocumentTechnicalIssue}
+      onOpenNote={onOpenNote}
     />
   );
 }
@@ -83,6 +93,9 @@ interface EditTaskModalFormProps {
   timeStats?: TaskTimeStats;
   activeSession?: DevSession | null;
   onStartSession?: (task: DevTask) => void;
+  taskNotes?: KnowledgeNote[];
+  onDocumentTechnicalIssue?: (task: DevTask) => void;
+  onOpenNote?: (noteId: string) => void;
 }
 
 function EditTaskModalForm({
@@ -97,6 +110,9 @@ function EditTaskModalForm({
   timeStats,
   activeSession,
   onStartSession,
+  taskNotes = [],
+  onDocumentTechnicalIssue,
+  onOpenNote,
 }: EditTaskModalFormProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
@@ -324,6 +340,66 @@ function EditTaskModalForm({
               onLinksChange={onGitHubLinksChange}
               disabled={isSubmitting}
             />
+
+            {/* Technical Notes Section */}
+            <div className="devflow-task-notes-section">
+              <div className="devflow-task-notes-section-header">
+                <div className="devflow-task-notes-section-title">
+                  <BookOpen className="size-4 text-accent shrink-0" />
+                  <span>Technical Notes ({taskNotes.length})</span>
+                </div>
+                {onDocumentTechnicalIssue && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    className="text-accent hover:text-accent hover:bg-accent/10 h-7 px-2 text-xs gap-1"
+                    onClick={() => {
+                      onClose();
+                      onDocumentTechnicalIssue(task);
+                    }}
+                  >
+                    <Plus className="size-3" />
+                    <span>Document Issue</span>
+                  </Button>
+                )}
+              </div>
+
+              {taskNotes.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic py-1">
+                  No technical notes documented for this task yet.
+                </p>
+              ) : (
+                <div className="devflow-task-notes-list">
+                  {taskNotes.map((n) => (
+                    <div
+                      key={n.id}
+                      className="devflow-task-note-item"
+                      onClick={() => {
+                        onClose();
+                        onOpenNote?.(n.id);
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span
+                          className={`devflow-category-badge is-${(
+                            n.category || "other"
+                          ).toLowerCase()}`}
+                        >
+                          {n.category || "Bugfix"}
+                        </span>
+                        <span className="font-medium text-foreground truncate">
+                          {n.title}
+                        </span>
+                      </div>
+                      <ChevronRight className="size-3.5 text-muted-foreground shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="devflow-task-modal-actions">

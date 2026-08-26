@@ -1,0 +1,872 @@
+/* Knowledge & Technical Notes Feature Stylesheet */
+
+.devflow-knowledge-page {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+/* Page Header */
+.devflow-knowledge-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.devflow-knowledge-title-group h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.devflow-knowledge-subtitle {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0;
+}
+
+.devflow-knowledge-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Search & Filter Bar */
+.devflow-knowledge-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.devflow-knowledge-search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.devflow-knowledge-search-box {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.devflow-knowledge-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.devflow-knowledge-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px 0 36px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: var(--text-h);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.devflow-knowledge-search-input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+.devflow-knowledge-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.devflow-knowledge-search-clear:hover {
+  opacity: 1;
+}
+
+.devflow-knowledge-project-select {
+  height: 38px;
+  padding: 0 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-h);
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  min-width: 160px;
+}
+
+/* Category Filter Tabs / Pills */
+.devflow-knowledge-category-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.devflow-knowledge-category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.devflow-knowledge-category-pill:hover {
+  background: color-mix(in srgb, var(--code-bg) 80%, var(--accent));
+  color: var(--text-h);
+}
+
+.devflow-knowledge-category-pill.is-active {
+  background: #a855f7;
+  border-color: #a855f7;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+}
+
+.devflow-knowledge-category-count {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+}
+
+.devflow-knowledge-category-pill.is-active .devflow-knowledge-category-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Section Dividers */
+.devflow-knowledge-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 12px 0;
+}
+
+.devflow-knowledge-section-count {
+  font-size: 11.5px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* Notes Grid */
+.devflow-knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+/* Note Card */
+.devflow-note-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.devflow-note-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--border) 60%, var(--accent));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.devflow-note-card.is-pinned {
+  border-color: rgba(168, 85, 247, 0.45);
+  background: color-mix(in srgb, var(--bg) 96%, #a855f7 4%);
+}
+
+.devflow-note-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.devflow-note-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Category Badges */
+.devflow-category-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  text-transform: capitalize;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.devflow-category-badge.is-architecture {
+  background: rgba(168, 85, 247, 0.14);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.28);
+}
+
+.devflow-category-badge.is-bugfix {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.devflow-category-badge.is-performance {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.devflow-category-badge.is-security {
+  background: rgba(225, 29, 72, 0.12);
+  color: #e11d48;
+  border: 1px solid rgba(225, 29, 72, 0.25);
+}
+
+.devflow-category-badge.is-database {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0ea5e9;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+}
+
+.devflow-category-badge.is-frontend {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.devflow-category-badge.is-backend {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.devflow-category-badge.is-devops {
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.devflow-category-badge.is-other {
+  background: var(--code-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Pin icon badge */
+.devflow-pin-badge {
+  color: #a855f7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.devflow-note-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.35;
+  margin: 0;
+  word-break: break-word;
+}
+
+.devflow-note-card-summary {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.45;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Lifecycle Snippets in card */
+.devflow-note-card-snippet {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.devflow-note-card-snippet strong {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+/* Context pills */
+.devflow-note-context-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.devflow-note-project-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-h);
+  max-width: 140px;
+}
+
+.devflow-note-task-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text);
+  max-width: 140px;
+}
+
+.devflow-note-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.18);
+  font-size: 11px;
+  color: #a855f7;
+}
+
+.devflow-note-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.devflow-note-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* =========================================================================
+   NOTE DETAIL VIEW
+   ========================================================================= */
+.devflow-note-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.devflow-note-detail-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.devflow-note-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Main Detail Header Card */
+.devflow-note-detail-header-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow);
+}
+
+.devflow-note-detail-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.devflow-note-detail-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-h);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.devflow-note-detail-summary-box {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-h);
+  line-height: 1.5;
+}
+
+/* Metadata Banner */
+.devflow-note-detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.devflow-note-detail-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.devflow-note-detail-meta-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.devflow-note-detail-meta-val {
+  font-size: 13px;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.devflow-note-detail-link {
+  color: #a855f7;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.devflow-note-detail-link:hover {
+  text-decoration: underline;
+}
+
+/* Structured Engineering Journal Sections */
+.devflow-journal-section {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+  box-shadow: var(--shadow);
+}
+
+.devflow-journal-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--code-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.devflow-journal-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-journal-section-subtitle {
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.devflow-journal-section-body {
+  padding: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-h);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Monospace code snippet display */
+.devflow-journal-code-block {
+  font-family: var(--mono);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  overflow-x: auto;
+  color: var(--text-h);
+  white-space: pre;
+}
+
+/* =========================================================================
+   NOTE MODAL (CREATE / EDIT)
+   ========================================================================= */
+.devflow-note-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.devflow-note-modal-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 680px;
+  max-height: min(90vh, 860px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.devflow-note-modal-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.devflow-note-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-note-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.devflow-note-modal-fields {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.devflow-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.devflow-field-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.devflow-field-hint {
+  font-size: 11px;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.devflow-note-input {
+  height: 38px;
+  padding: 0 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13.5px;
+  color: var(--text-h);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.devflow-note-input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+.devflow-note-textarea {
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13.5px;
+  color: var(--text-h);
+  outline: none;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.devflow-note-textarea:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+.devflow-note-textarea.is-code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.devflow-note-select {
+  height: 38px;
+  padding: 0 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-h);
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.devflow-note-select:focus {
+  border-color: #a855f7;
+}
+
+.devflow-note-modal-actions {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  background: var(--code-bg);
+}
+
+/* =========================================================================
+   TASK & PROJECT INTEGRATIONS
+   ========================================================================= */
+/* Task Note Badge in Card */
+.devflow-task-notes-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  padding: 1.5px 6px;
+  border-radius: 4px;
+}
+
+/* Task Modal Technical Notes Section */
+.devflow-task-notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.devflow-task-notes-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.devflow-task-notes-section-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.devflow-task-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.devflow-task-note-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  font-size: 12.5px;
+}
+
+.devflow-task-note-item:hover {
+  border-color: #a855f7;
+  transform: translateX(2px);
+}
+
+/* Project Workspace Technical Knowledge Section */
+.devflow-project-knowledge-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.devflow-project-knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+/* Empty States */
+.devflow-knowledge-empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 48px 20px;
+  text-align: center;
+  background: var(--social-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.devflow-knowledge-empty-icon {
+  width: 42px;
+  height: 42px;
+  color: #a855f7;
+  opacity: 0.85;
+}
+
+.devflow-knowledge-empty-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.devflow-knowledge-empty-desc {
+  font-size: 13.5px;
+  color: var(--text);
+  margin: 0;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .devflow-knowledge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .devflow-knowledge-search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .devflow-note-detail-title {
+    font-size: 19px;
+  }
+
+  .devflow-note-modal-card {
+    max-height: 95vh;
+  }
+}

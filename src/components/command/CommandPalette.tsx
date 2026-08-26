@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import type { DevTask } from "@/features/tasks/types";
 import type { DevProject } from "@/features/projects/types";
 import type { DevSession } from "@/features/sessions/types";
+import type { KnowledgeNote } from "@/features/knowledge/types";
 import type { NavItemId } from "@/components/layout/AppShell";
 import "./commandPalette.css";
 
@@ -26,7 +27,8 @@ export type CommandCategory =
   | "quick_actions"
   | "navigation"
   | "projects"
-  | "tasks";
+  | "tasks"
+  | "knowledge";
 
 export interface CommandItem {
   id: string;
@@ -38,6 +40,7 @@ export interface CommandItem {
   statusBadge?: string;
   priorityBadge?: string;
   projectContext?: { name: string; color: string | null };
+  searchTerms?: string;
   onSelect: () => void;
   onFocusAction?: () => void;
 }
@@ -47,30 +50,36 @@ export interface CommandPaletteProps {
   onClose: () => void;
   tasks: DevTask[];
   projects: DevProject[];
+  knowledgeNotes?: KnowledgeNote[];
   activeSession: DevSession | null;
   onNavigate: (nav: NavItemId, param?: string, taskId?: string) => void;
   onStartFocus: (task: DevTask) => Promise<void> | void;
   onCreateTask: () => void;
+  onCreateNote?: () => void;
 }
 
 interface CommandPaletteModalProps {
   onClose: () => void;
   tasks: DevTask[];
   projects: DevProject[];
+  knowledgeNotes?: KnowledgeNote[];
   activeSession: DevSession | null;
   onNavigate: (nav: NavItemId, param?: string, taskId?: string) => void;
   onStartFocus: (task: DevTask) => Promise<void> | void;
   onCreateTask: () => void;
+  onCreateNote?: () => void;
 }
 
 function CommandPaletteModal({
   onClose,
   tasks,
   projects,
+  knowledgeNotes = [],
   activeSession,
   onNavigate,
   onStartFocus,
   onCreateTask,
+  onCreateNote,
 }: CommandPaletteModalProps) {
   const [search, setSearch] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -134,6 +143,20 @@ function CommandPaletteModal({
         onCreateTask();
       },
     });
+
+    if (onCreateNote) {
+      items.push({
+        id: "action-new-note",
+        category: "quick_actions",
+        title: "New Technical Note",
+        subtitle: "Document a bug investigation, solution, or engineering lesson",
+        icon: BookOpen,
+        onSelect: () => {
+          onClose();
+          onCreateNote();
+        },
+      });
+    }
 
     if (activeSession) {
       items.push({
@@ -224,14 +247,50 @@ function CommandPaletteModal({
       });
     }
 
+    // 5. Technical Notes (Knowledge)
+    for (const n of knowledgeNotes) {
+      const proj = n.project_id ? projectMap.get(n.project_id) : undefined;
+      const searchTerms = [
+        n.title,
+        n.summary || "",
+        n.problem || "",
+        n.investigation || "",
+        n.root_cause || "",
+        n.solution || "",
+        n.lessons_learned || "",
+        n.content || "",
+        n.category || "",
+        ...(n.tags || []),
+      ].join(" ").toLowerCase();
+
+      items.push({
+        id: `note-${n.id}`,
+        category: "knowledge",
+        title: n.title,
+        subtitle: n.summary || n.problem || n.solution || `${n.category} Note`,
+        icon: BookOpen,
+        statusBadge: n.category,
+        projectContext: proj
+          ? { name: proj.name, color: proj.color }
+          : undefined,
+        searchTerms,
+        onSelect: () => {
+          onClose();
+          onNavigate("knowledge", n.id);
+        },
+      });
+    }
+
     return items;
   }, [
     projects,
     tasks,
+    knowledgeNotes,
     activeSession,
     projectMap,
     onClose,
     onCreateTask,
+    onCreateNote,
     onNavigate,
     handleTriggerFocus,
   ]);
@@ -240,7 +299,7 @@ function CommandPaletteModal({
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) {
-      // Default view when empty: Quick Actions, Navigation, Top Projects, and active tasks
+      // Default view when empty: Quick Actions, Navigation, Top Projects, active tasks, and pinned notes
       return allItems.filter((item) => {
         if (
           item.category === "quick_actions" ||
@@ -255,6 +314,9 @@ function CommandPaletteModal({
             item.priorityBadge === "high"
           );
         }
+        if (item.category === "knowledge") {
+          return knowledgeNotes.some((kn) => `note-${kn.id}` === item.id && kn.is_pinned);
+        }
         return true;
       });
     }
@@ -265,15 +327,17 @@ function CommandPaletteModal({
       const matchProject = item.projectContext?.name.toLowerCase().includes(q);
       const matchStatus = item.statusBadge?.toLowerCase().includes(q);
       const matchPriority = item.priorityBadge?.toLowerCase().includes(q);
+      const matchSearchTerms = item.searchTerms?.includes(q);
       return (
         matchTitle ||
         matchSubtitle ||
         matchProject ||
         matchStatus ||
-        matchPriority
+        matchPriority ||
+        matchSearchTerms
       );
     });
-  }, [allItems, search]);
+  }, [allItems, search, knowledgeNotes]);
 
   // Group filtered items by category
   const groupedItems = useMemo(() => {
@@ -286,6 +350,7 @@ function CommandPaletteModal({
       { category: "navigation", label: "Navigation", items: [] },
       { category: "projects", label: "Projects", items: [] },
       { category: "tasks", label: "Tasks", items: [] },
+      { category: "knowledge", label: "Technical Notes", items: [] },
     ];
 
     for (const item of filteredItems) {
@@ -365,13 +430,13 @@ function CommandPaletteModal({
             id="command-palette-title"
             type="text"
             className="devflow-command-input"
-            placeholder="Search commands, tasks, projects... (↑↓ to navigate)"
+            placeholder="Search commands, tasks, projects, notes... (↑↓ to navigate)"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setSelectedIndex(0);
             }}
-            aria-label="Search commands, tasks, and projects"
+            aria-label="Search commands, tasks, projects, and technical notes"
             autoComplete="off"
             spellCheck={false}
           />
@@ -570,10 +635,12 @@ export function CommandPalette({
   onClose,
   tasks,
   projects,
+  knowledgeNotes = [],
   activeSession,
   onNavigate,
   onStartFocus,
   onCreateTask,
+  onCreateNote,
 }: CommandPaletteProps) {
   if (!isOpen) return null;
 
@@ -582,10 +649,12 @@ export function CommandPalette({
       onClose={onClose}
       tasks={tasks}
       projects={projects}
+      knowledgeNotes={knowledgeNotes}
       activeSession={activeSession}
       onNavigate={onNavigate}
       onStartFocus={onStartFocus}
       onCreateTask={onCreateTask}
+      onCreateNote={onCreateNote}
     />
   );
 }
