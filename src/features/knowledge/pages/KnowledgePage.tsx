@@ -51,7 +51,7 @@ export function KnowledgePage({
   } = useKnowledge(userId);
 
   const { projects } = useProjects(userId);
-  const { tasks } = useTasks(userId);
+  const { tasks, githubLinksMap } = useTasks(userId);
 
   const [internalSelectedNoteId, setInternalSelectedNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -246,6 +246,7 @@ export function KnowledgePage({
           note={currentNote}
           projects={projects}
           tasks={tasks}
+          githubLinksMap={githubLinksMap}
           onBack={handleBackToKnowledge}
           onEdit={(n) => setEditingNote(n)}
           onDelete={handleDeleteNote}

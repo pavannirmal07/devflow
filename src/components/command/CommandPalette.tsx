@@ -20,6 +20,8 @@ import type { DevTask } from "@/features/tasks/types";
 import type { DevProject } from "@/features/projects/types";
 import type { DevSession } from "@/features/sessions/types";
 import type { KnowledgeNote } from "@/features/knowledge/types";
+import type { TaskGitHubLink } from "@/features/github/types";
+import { GitHubIcon } from "@/features/github/components/GitHubIcon";
 import type { NavItemId } from "@/components/layout/AppShell";
 import "./commandPalette.css";
 
@@ -51,6 +53,7 @@ export interface CommandPaletteProps {
   tasks: DevTask[];
   projects: DevProject[];
   knowledgeNotes?: KnowledgeNote[];
+  githubLinksMap?: Record<string, TaskGitHubLink[]>;
   activeSession: DevSession | null;
   onNavigate: (nav: NavItemId, param?: string, taskId?: string) => void;
   onStartFocus: (task: DevTask) => Promise<void> | void;
@@ -63,6 +66,7 @@ interface CommandPaletteModalProps {
   tasks: DevTask[];
   projects: DevProject[];
   knowledgeNotes?: KnowledgeNote[];
+  githubLinksMap?: Record<string, TaskGitHubLink[]>;
   activeSession: DevSession | null;
   onNavigate: (nav: NavItemId, param?: string, taskId?: string) => void;
   onStartFocus: (task: DevTask) => Promise<void> | void;
@@ -75,6 +79,7 @@ function CommandPaletteModal({
   tasks,
   projects,
   knowledgeNotes = [],
+  githubLinksMap = {},
   activeSession,
   onNavigate,
   onStartFocus,
@@ -172,6 +177,25 @@ function CommandPaletteModal({
       });
     }
 
+    // Quick Actions: Open GitHub Repository for connected projects
+    for (const p of projects) {
+      if (p.github_owner && p.github_repo) {
+        const repoFullName = `${p.github_owner}/${p.github_repo}`;
+        const repoUrl = p.github_url || `https://github.com/${repoFullName}`;
+        items.push({
+          id: `action-gh-repo-${p.id}`,
+          category: "quick_actions",
+          title: `Open GitHub: ${p.name}`,
+          subtitle: repoFullName,
+          icon: GitHubIcon,
+          onSelect: () => {
+            onClose();
+            window.open(repoUrl, "_blank", "noopener,noreferrer");
+          },
+        });
+      }
+    }
+
     // 2. Navigation
     const navs: {
       id: NavItemId;
@@ -219,9 +243,41 @@ function CommandPaletteModal({
       });
     }
 
-    // 4. Tasks
+    // 4. Tasks with GitHub search terms indexing
     for (const t of tasks) {
       const proj = t.project_id ? projectMap.get(t.project_id) : undefined;
+      const ghLinks = githubLinksMap[t.id] || [];
+
+      const ghTerms = ghLinks
+        .flatMap((link) => {
+          const terms = [link.name, link.github_id];
+          if (link.metadata) {
+            if (link.metadata.branch_name) terms.push(String(link.metadata.branch_name));
+            if (link.metadata.pr_number) {
+              terms.push(String(link.metadata.pr_number));
+              terms.push(`#${link.metadata.pr_number}`);
+            }
+            if (link.metadata.issue_number) {
+              terms.push(String(link.metadata.issue_number));
+              terms.push(`#${link.metadata.issue_number}`);
+            }
+            if (link.metadata.commit_sha) terms.push(String(link.metadata.commit_sha));
+            if (link.metadata.commit_author) terms.push(String(link.metadata.commit_author));
+            if (link.metadata.issue_author) terms.push(String(link.metadata.issue_author));
+          }
+          return terms;
+        })
+        .join(" ");
+
+      const taskSearchTerms = [
+        t.title,
+        t.description || "",
+        proj?.name || "",
+        ghTerms,
+      ]
+        .join(" ")
+        .toLowerCase();
+
       items.push({
         id: `task-${t.id}`,
         category: "tasks",
@@ -233,6 +289,7 @@ function CommandPaletteModal({
         projectContext: proj
           ? { name: proj.name, color: proj.color }
           : undefined,
+        searchTerms: taskSearchTerms,
         onSelect: () => {
           onClose();
           if (t.project_id) {
@@ -261,7 +318,9 @@ function CommandPaletteModal({
         n.content || "",
         n.category || "",
         ...(n.tags || []),
-      ].join(" ").toLowerCase();
+      ]
+        .join(" ")
+        .toLowerCase();
 
       items.push({
         id: `note-${n.id}`,
@@ -286,6 +345,7 @@ function CommandPaletteModal({
     projects,
     tasks,
     knowledgeNotes,
+    githubLinksMap,
     activeSession,
     projectMap,
     onClose,
@@ -636,6 +696,7 @@ export function CommandPalette({
   tasks,
   projects,
   knowledgeNotes = [],
+  githubLinksMap = {},
   activeSession,
   onNavigate,
   onStartFocus,
@@ -650,6 +711,7 @@ export function CommandPalette({
       tasks={tasks}
       projects={projects}
       knowledgeNotes={knowledgeNotes}
+      githubLinksMap={githubLinksMap}
       activeSession={activeSession}
       onNavigate={onNavigate}
       onStartFocus={onStartFocus}

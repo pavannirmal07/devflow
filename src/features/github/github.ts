@@ -216,9 +216,13 @@ export async function linkGitHubItemToTask(
       return { link: null, error: new Error("Task ID is required") };
     }
 
-    // For single-instance link types (e.g. branch, pull_request), if one already exists for this task,
-    // we replace or upsert it so a task doesn't accumulate multiple different branches or PRs in V1.
-    if (input.link_type === "branch" || input.link_type === "pull_request") {
+    // For single-instance link types (e.g. branch, pull_request, issue), if one already exists for this task,
+    // we replace or upsert it so a task doesn't accumulate multiple different branches, PRs, or issues in V1.
+    if (
+      input.link_type === "branch" ||
+      input.link_type === "pull_request" ||
+      input.link_type === "issue"
+    ) {
       await supabase
         .from("task_github_links")
         .delete()
@@ -250,6 +254,38 @@ export async function linkGitHubItemToTask(
     return {
       link: null,
       error: err instanceof Error ? err : new Error("Failed to link GitHub item to task"),
+    };
+  }
+}
+
+export async function updateTaskGitHubLinkMetadata(
+  linkId: string,
+  metadata: Record<string, unknown>
+): Promise<{ link: TaskGitHubLink | null; error: Error | null }> {
+  try {
+    if (!linkId) {
+      return { link: null, error: new Error("Link ID is required") };
+    }
+
+    const { data, error } = await supabase
+      .from("task_github_links")
+      .update({ metadata, updated_at: new Date().toISOString() })
+      .eq("id", linkId)
+      .select(LINK_COLUMNS)
+      .single();
+
+    if (error) {
+      return { link: null, error: new Error(error.message) };
+    }
+
+    return { link: data as TaskGitHubLink, error: null };
+  } catch (err) {
+    return {
+      link: null,
+      error:
+        err instanceof Error
+          ? err
+          : new Error("Failed to update task GitHub link metadata"),
     };
   }
 }
