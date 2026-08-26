@@ -40,21 +40,21 @@ export function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center p-4 sm:px-6 sm:py-12 bg-[#16171d] text-[#f3f4f6] box-border overflow-y-auto">
+    <main className="min-h-screen w-full flex flex-col items-center justify-center p-4 sm:px-6 sm:py-12 bg-background text-foreground box-border overflow-y-auto">
       <div className="w-full max-w-sm sm:max-w-md flex flex-col items-center justify-center gap-5 sm:gap-6">
         <div className="flex items-center justify-center gap-2.5 text-center">
-          <Zap className="size-7 shrink-0" style={{ color: "var(--accent)" }} />
-          <span className="font-bold text-2xl tracking-tight text-[#f3f4f6]">
+          <Zap className="size-7 shrink-0 text-accent" />
+          <span className="font-bold text-2xl tracking-tight text-foreground">
             DevFlow
           </span>
         </div>
 
-        <Card className="w-full shadow-lg bg-[#1c1d24] border-[#2e303a] box-border p-0 gap-0">
+        <Card className="w-full shadow-lg bg-card border-border box-border p-0 gap-0">
           <CardHeader className="space-y-1.5 p-5 sm:p-6 pb-2 sm:pb-3 text-center sm:text-left">
-            <CardTitle className="text-xl sm:text-2xl text-[#f3f4f6]">
+            <CardTitle className="text-xl sm:text-2xl text-foreground">
               Welcome back
             </CardTitle>
-            <CardDescription className="text-sm text-[#9ca3af]">
+            <CardDescription className="text-sm text-muted-foreground">
               Sign in to continue to DevFlow.
             </CardDescription>
           </CardHeader>
@@ -62,7 +62,7 @@ export function AuthPage() {
           <CardContent className="p-5 sm:p-6 pt-2 sm:pt-3">
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2 text-left">
-                <Label htmlFor="email" className="text-[#f3f4f6]">
+                <Label htmlFor="email" className="text-foreground">
                   Email
                 </Label>
                 <Input
@@ -72,13 +72,13 @@ export function AuthPage() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   autoComplete="email"
-                  className="h-10 sm:h-11 bg-[#16171d] border-[#2e303a] text-[#f3f4f6] placeholder-[#6b7280]"
+                  className="h-10 sm:h-11 bg-background border-border"
                   required
                 />
               </div>
 
               <div className="flex flex-col gap-2 text-left">
-                <Label htmlFor="password" className="text-[#f3f4f6]">
+                <Label htmlFor="password" className="text-foreground">
                   Password
                 </Label>
                 <Input
@@ -89,7 +89,7 @@ export function AuthPage() {
                   onChange={(event) => setPassword(event.target.value)}
                   autoComplete="current-password"
                   minLength={6}
-                  className="h-10 sm:h-11 bg-[#16171d] border-[#2e303a] text-[#f3f4f6] placeholder-[#6b7280]"
+                  className="h-10 sm:h-11 bg-background border-border"
                   required
                 />
               </div>
@@ -97,10 +97,9 @@ export function AuthPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-10 sm:h-11 mt-1 text-sm font-semibold text-[#121218] hover:opacity-90 transition-opacity border-none disabled:opacity-50"
-                style={{ backgroundColor: "var(--accent)" }}
+                className="w-full h-10 sm:h-11 mt-1 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity border-none disabled:opacity-50 devflow-btn-primary"
               >
-                {loading && <Loader2 className="size-4 animate-spin mr-2 text-[#F8F7FC]" />}
+                {loading && <Loader2 className="size-4 animate-spin mr-2" />}
                 {loading ? "Please wait..." : "Sign in"}
               </Button>
             </form>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CheckCircle2, Archive, Activity, GitBranch, ExternalLink, Pencil, Trash2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DevProject } from "../types";
+import { formatProjectName } from "../utils/formatProjectName";
 
 export interface ProjectCardProps {
   project: DevProject;
@@ -61,8 +62,8 @@ export function ProjectCard({
               className="devflow-project-color-dot"
               style={{ backgroundColor: projectColor }}
             />
-            <h3 className="devflow-project-card-title" title={project.name}>
-              {project.name}
+            <h3 className="devflow-project-card-title" title={formatProjectName(project.name)}>
+              {formatProjectName(project.name)}
             </h3>
           </div>
 

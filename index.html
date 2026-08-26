@@ -1,13 +1,90 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DevFlow</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevFlow</title>
+  <script>
+    (function () {
+      try {
+        var mode = localStorage.getItem("devflow_theme_mode") || "system";
+        var isDark =
+          mode === "dark" ||
+          (mode === "system" &&
+            (window.matchMedia("(prefers-color-scheme: dark)").matches ||
+              !window.matchMedia("(prefers-color-scheme: light)").matches));
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+          document.documentElement.classList.remove("light");
+          document.documentElement.style.colorScheme = "dark";
+        } else {
+          document.documentElement.classList.remove("dark");
+          document.documentElement.classList.add("light");
+          document.documentElement.style.colorScheme = "light";
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      height: 100%;
+    }
+    html.dark, html.dark body {
+      background-color: #16171d;
+      color: #f3f4f6;
+    }
+    html.light, html.light body {
+      background-color: #ffffff;
+      color: #0f172a;
+    }
+    .devflow-init-loader {
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .devflow-init-mark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .devflow-init-text {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    html.dark .devflow-init-icon {
+      color: #c084fc;
+    }
+    html.light .devflow-init-icon {
+      color: #9333ea;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root">
+    <div class="devflow-init-loader">
+      <div class="devflow-init-mark">
+        <svg class="devflow-init-icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span class="devflow-init-text">DevFlow</span>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

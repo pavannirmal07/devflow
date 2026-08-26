@@ -97,15 +97,20 @@
 }
 
 .devflow-nav-button:hover:not(.is-active) {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  color: var(--text-h);
+  background: color-mix(in srgb, var(--accent) 10%, transparent) !important;
+  color: var(--text-h) !important;
 }
 
 .devflow-nav-button.is-active {
-  background: var(--accent-bg);
-  color: var(--accent);
-  border-color: var(--accent-border);
-  font-weight: 600;
+  background: var(--accent-bg) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent-border) !important;
+  font-weight: 600 !important;
+}
+
+.devflow-nav-button.is-active .devflow-nav-icon,
+.devflow-nav-button.is-active .devflow-nav-label {
+  color: var(--accent) !important;
 }
 
 /* Sidebar Footer (Account Area: Greeting & Sign Out) */

@@ -10,6 +10,7 @@ import {
   Timer,
   BookOpen,
   Settings,
+  Info,
   AlertCircle,
   X,
   ArrowRight,
@@ -208,6 +209,7 @@ function CommandPaletteModal({
       { id: "sessions", label: "Sessions", icon: Timer },
       { id: "knowledge", label: "Knowledge", icon: BookOpen },
       { id: "settings", label: "Settings", icon: Settings },
+      { id: "about", label: "About", icon: Info },
     ];
 
     for (const nav of navs) {

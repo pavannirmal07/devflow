@@ -7,6 +7,7 @@ import {
   Timer,
   BookOpen,
   Settings,
+  Info,
   Zap,
   Menu,
   X,
@@ -20,6 +21,8 @@ import { SessionsPage, useSessions } from "@/features/sessions";
 import { ProjectsPage, useProjects } from "@/features/projects";
 import { TasksPage, useTasks } from "@/features/tasks";
 import { KnowledgePage, useKnowledge, NoteModal, type CreateKnowledgeNoteInput } from "@/features/knowledge";
+import { SettingsPage } from "@/features/settings";
+import { AboutPage } from "@/features/about";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { CommandPalette } from "@/components/command";
 import type { DevTask } from "@/features/tasks/types";
@@ -39,7 +42,8 @@ export type NavItemId =
   | "tasks"
   | "sessions"
   | "knowledge"
-  | "settings";
+  | "settings"
+  | "about";
 
 interface NavItem {
   id: NavItemId;
@@ -54,6 +58,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "sessions", label: "Sessions", icon: Timer },
   { id: "knowledge", label: "Knowledge", icon: BookOpen },
   { id: "settings", label: "Settings", icon: Settings },
+  { id: "about", label: "About", icon: Info },
 ];
 
 function getNavFromHash(): {
@@ -268,7 +273,7 @@ export function AppShell({
                 <li key={item.id}>
                   <Button
                     type="button"
-                    variant={isActive ? "secondary" : "ghost"}
+                    variant="ghost"
                     className={`devflow-nav-button ${isActive ? "is-active" : ""}`}
                     onClick={() => handleSelectNav(item.id)}
                   >
@@ -399,6 +404,10 @@ export function AppShell({
                   }
                 }}
               />
+            ) : activeNav === "settings" ? (
+              <SettingsPage />
+            ) : activeNav === "about" ? (
+              <AboutPage />
             ) : (
               <div className="devflow-placeholder-card">
                 <h2>{activeItem?.label}</h2>

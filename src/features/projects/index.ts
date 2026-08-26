@@ -7,3 +7,4 @@ export * from "./components/ProjectWorkspace";
 export * from "./components/CreateProjectModal";
 export * from "./components/EditProjectModal";
 export * from "./utils/projectMetrics";
+export * from "./utils/formatProjectName";

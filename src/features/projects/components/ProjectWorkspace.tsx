@@ -30,6 +30,7 @@ import type { DevTask, TaskStatus } from "@/features/tasks/types";
 import { formatDuration, computeSessionDuration } from "@/features/tasks/utils/duration";
 import type { DevProject } from "../types";
 import { deriveProjectMetrics } from "../utils/projectMetrics";
+import { formatProjectName } from "../utils/formatProjectName";
 import "@/features/dashboard/dashboard.css";
 import "@/features/knowledge/knowledge.css";
 
@@ -355,7 +356,7 @@ export function ProjectWorkspace({
               className="devflow-project-workspace-color-dot"
               style={{ backgroundColor: projectColor }}
             />
-            <h1 className="devflow-project-workspace-title">{project.name}</h1>
+            <h1 className="devflow-project-workspace-title">{formatProjectName(project.name)}</h1>
 
             {project.status === "active" && (
               <span className="devflow-project-status-badge is-active">
@@ -525,7 +526,7 @@ export function ProjectWorkspace({
             <FolderKanban className="devflow-empty-icon" />
             <h3 className="devflow-empty-title">No tasks in this project yet</h3>
             <p className="devflow-empty-desc">
-              Create a task to start tracking development work for {project.name}.
+              Create a task to start tracking development work for {formatProjectName(project.name)}.
             </p>
             <Button
               type="button"
@@ -600,7 +601,7 @@ export function ProjectWorkspace({
               No technical notes for this project yet
             </h3>
             <p className="text-xs text-muted-foreground max-w-sm text-center">
-              Capture engineering decisions, debugging investigations, and solutions specific to {project.name}.
+              Capture engineering decisions, debugging investigations, and solutions specific to {formatProjectName(project.name)}.
             </p>
             <Button
               type="button"
@@ -621,7 +622,7 @@ export function ProjectWorkspace({
                 <NoteCard
                   key={note.id}
                   note={note}
-                  projectName={project.name}
+                  projectName={formatProjectName(project.name)}
                   projectColor={project.color}
                   taskTitle={taskTitle}
                   onSelect={() => handleOpenNote(note.id)}
