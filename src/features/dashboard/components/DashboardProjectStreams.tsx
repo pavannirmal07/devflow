@@ -2,6 +2,7 @@ import { FolderKanban, GitBranch, Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GitHubIcon } from "../../github/components/GitHubIcon";
 import type { DevProject } from "../../projects/types";
+import { formatProjectName } from "../../projects/utils/formatProjectName";
 import type { DevTask } from "../../tasks/types";
 
 export interface DashboardProjectStreamsProps {
@@ -100,7 +101,7 @@ export function DashboardProjectStreams({
                       style={{ backgroundColor: project.color || "#a855f7" }}
                     />
                     <span className="text-xs font-semibold text-foreground truncate">
-                      {project.name}
+                      {formatProjectName(project.name)}
                     </span>
                   </div>
 

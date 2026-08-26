@@ -213,12 +213,9 @@ export function TasksPage({ userId, highlightTaskId, onNavigateToKnowledge }: Ta
     <div className={`devflow-tasks-page ${viewMode === "board" ? "is-board-view" : ""}`}>
       {/* Header */}
       <div className="devflow-tasks-header">
-        <div className="devflow-tasks-title-group">
-          <h1>Tasks</h1>
-          <p className="devflow-tasks-subtitle">
-            Plan, prioritize, and track your development work.
-          </p>
-        </div>
+        <p className="devflow-tasks-subtitle">
+          Plan, prioritize, and track your development work.
+        </p>
         <Button
           type="button"
           className="devflow-btn-primary h-9 px-4 text-sm"

@@ -272,12 +272,9 @@ export function KnowledgePage({
     <div className="devflow-knowledge-page">
       {/* Top Header */}
       <div className="devflow-knowledge-header">
-        <div className="devflow-knowledge-title-group">
-          <h1>Knowledge</h1>
-          <p className="devflow-knowledge-subtitle">
-            Technical notes, solutions, and engineering lessons.
-          </p>
-        </div>
+        <p className="devflow-knowledge-subtitle">
+          Technical notes, solutions, and engineering lessons.
+        </p>
 
         <div className="devflow-knowledge-header-actions">
           <Button

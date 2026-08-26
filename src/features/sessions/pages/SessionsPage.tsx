@@ -217,12 +217,9 @@ export function SessionsPage({ userId }: SessionsPageProps) {
     <div className="devflow-sessions-page">
       {/* Top Header */}
       <div className="devflow-sessions-header">
-        <div className="devflow-sessions-title-group">
-          <h1>Dev Sessions</h1>
-          <p className="devflow-sessions-subtitle">
-            Track your focused development time and work sessions.
-          </p>
-        </div>
+        <p className="devflow-sessions-subtitle">
+          Track your focused development time and work sessions.
+        </p>
 
         {!isFormOpen && (
           <Button

@@ -111,12 +111,9 @@ export function ProjectsPage({
     <div className="devflow-projects-page">
       {/* Top Header Area */}
       <div className="devflow-projects-header">
-        <div className="devflow-projects-title-group">
-          <h1>Projects</h1>
-          <p className="devflow-projects-subtitle">
-            Organize and track your active codebases, workspaces, and repositories.
-          </p>
-        </div>
+        <p className="devflow-projects-subtitle">
+          Organize and track your active codebases, workspaces, and repositories.
+        </p>
 
         <Button
           type="button"

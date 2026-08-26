@@ -195,21 +195,34 @@ export function DashboardPage({
     <div className="devflow-dashboard-page">
       {/* Top Header / Welcome Row */}
       <div className="devflow-dashboard-header">
-        <div className="flex flex-col gap-1 min-w-0">
-          <h1 className="devflow-dashboard-title">
-            Command Center
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            {userName ? `Welcome back, ${userName}. ` : "Welcome back. "}
-            {metrics.overdueTasksCount > 0
-              ? `You have ${metrics.overdueTasksCount} overdue task${
-                  metrics.overdueTasksCount === 1 ? "" : "s"
-                } requiring attention.`
-              : metrics.dueTodayTasksCount > 0
-              ? `You have ${metrics.dueTodayTasksCount} task${
-                  metrics.dueTodayTasksCount === 1 ? "" : "s"
-                } due today.`
-              : "All tasks on track. Ready for deep work."}
+        <div className="devflow-dashboard-greeting-wrap">
+          <h2 className="devflow-dashboard-greeting-title">
+            <span className="devflow-dashboard-greeting-prefix">Welcome back,</span>
+            <span className="devflow-dashboard-greeting-highlight">
+              {userName || "Developer"}
+            </span>
+          </h2>
+          <p className="devflow-dashboard-greeting-subtitle">
+            {metrics.overdueTasksCount > 0 ? (
+              <span className="devflow-greeting-status is-overdue">
+                <span className="devflow-status-dot is-overdue" />
+                <span>
+                  You have {metrics.overdueTasksCount} overdue task{metrics.overdueTasksCount === 1 ? "" : "s"} requiring attention.
+                </span>
+              </span>
+            ) : metrics.dueTodayTasksCount > 0 ? (
+              <span className="devflow-greeting-status is-due-today">
+                <span className="devflow-status-dot is-due-today" />
+                <span>
+                  You have {metrics.dueTodayTasksCount} task{metrics.dueTodayTasksCount === 1 ? "" : "s"} due today.
+                </span>
+              </span>
+            ) : (
+              <span className="devflow-greeting-status is-ready">
+                <span className="devflow-status-dot is-ready" />
+                <span>All tasks on track. Ready for deep work.</span>
+              </span>
+            )}
           </p>
         </div>
 
