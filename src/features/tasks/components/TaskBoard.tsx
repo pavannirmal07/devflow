@@ -19,6 +19,8 @@ export interface TaskBoardProps {
   onSubtasksChange?: (taskId: string, subtasks: TaskSubtask[]) => void;
   onStatusChange: (taskId: string, newStatus: TaskStatus) => Promise<void>;
   deletingTaskId?: string | null;
+  taskNotesCountMap?: Record<string, number>;
+  onDocumentTechnicalIssue?: (task: DevTask) => void;
 }
 
 interface ColumnDef {
@@ -67,6 +69,8 @@ export function TaskBoard({
   onSubtasksChange,
   onStatusChange,
   deletingTaskId,
+  taskNotesCountMap,
+  onDocumentTechnicalIssue,
 }: TaskBoardProps) {
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null);
@@ -104,27 +108,26 @@ export function TaskBoard({
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    const related = e.relatedTarget as HTMLElement | null;
-    if (!related || !e.currentTarget.contains(related)) {
+    const related = e.relatedTarget as Node | null;
+    if (!e.currentTarget.contains(related)) {
       setDragOverCol(null);
     }
   };
 
   const handleDrop = async (
     e: React.DragEvent<HTMLDivElement>,
-    targetStatus: TaskStatus
+    status: TaskStatus
   ) => {
     e.preventDefault();
     setDragOverCol(null);
     const taskId = e.dataTransfer.getData("text/plain") || draggingTaskId;
-    setDraggingTaskId(null);
-
     if (!taskId) return;
 
     const task = tasks.find((t) => t.id === taskId);
-    if (!task || task.status === targetStatus) return;
-
-    await onStatusChange(taskId, targetStatus);
+    if (task && task.status !== status) {
+      await onStatusChange(taskId, status);
+    }
+    setDraggingTaskId(null);
   };
 
   return (
@@ -191,6 +194,8 @@ export function TaskBoard({
                       onDragEnd={handleDragEnd}
                       isHighlighted={task.id === highlightTaskId}
                       className={isBeingDragged ? "is-dragging" : ""}
+                      noteCount={taskNotesCountMap ? taskNotesCountMap[task.id] : undefined}
+                      onDocumentTechnicalIssue={onDocumentTechnicalIssue}
                     />
                   );
                 })

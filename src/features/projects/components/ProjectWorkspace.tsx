@@ -14,11 +14,14 @@ import {
   FolderKanban,
   Archive,
   RefreshCw,
+  BookOpen,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GitHubIcon } from "@/features/github/components/GitHubIcon";
 import { useTasks } from "@/features/tasks/useTasks";
 import { useSessions, TaskCompletionPrompt, type TaskCompletionPromptState } from "@/features/sessions";
+import { useKnowledge, NoteModal, NoteCard, type CreateKnowledgeNoteInput, type KnowledgeNote } from "@/features/knowledge";
 import { TaskBoard } from "@/features/tasks/components/TaskBoard";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { EditTaskModal } from "@/features/tasks/components/EditTaskModal";
@@ -28,6 +31,7 @@ import { formatDuration, computeSessionDuration } from "@/features/tasks/utils/d
 import type { DevProject } from "../types";
 import { deriveProjectMetrics } from "../utils/projectMetrics";
 import "@/features/dashboard/dashboard.css";
+import "@/features/knowledge/knowledge.css";
 
 export interface ProjectWorkspaceProps {
   userId: string;
@@ -78,8 +82,12 @@ export function ProjectWorkspace({
     endSession,
   } = useSessions(userId);
 
+  const { notes, createNote, togglePinNote } = useKnowledge(userId);
+
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<DevTask | null>(null);
+  const [documentingTask, setDocumentingTask] = useState<DevTask | null>(null);
+  const [isCreateNoteOpen, setIsCreateNoteOpen] = useState(false);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [sessionWarning, setSessionWarning] = useState<string | null>(null);
@@ -100,6 +108,35 @@ export function ProjectWorkspace({
   const projectTasks = useMemo(() => {
     return tasks.filter((t) => t.project_id === project.id);
   }, [tasks, project.id]);
+
+  // Technical notes belonging to this project
+  const projectNotes = useMemo(() => {
+    return notes.filter((n) => n.project_id === project.id);
+  }, [notes, project.id]);
+
+  // Technical notes mapped by task_id
+  const { taskNotesMap, taskNotesCountMap } = useMemo(() => {
+    const nMap: Record<string, KnowledgeNote[]> = {};
+    const cMap: Record<string, number> = {};
+    for (const n of notes) {
+      if (n.task_id) {
+        if (!nMap[n.task_id]) nMap[n.task_id] = [];
+        nMap[n.task_id].push(n);
+        cMap[n.task_id] = (cMap[n.task_id] || 0) + 1;
+      }
+    }
+    return { taskNotesMap: nMap, taskNotesCountMap: cMap };
+  }, [notes]);
+
+  const handleOpenNote = (noteId: string) => {
+    window.history.pushState(null, "", `#knowledge/${noteId}`);
+    window.dispatchEvent(new Event("hashchange"));
+  };
+
+  const handleViewAllKnowledge = () => {
+    window.history.pushState(null, "", `#knowledge`);
+    window.dispatchEvent(new Event("hashchange"));
+  };
 
   // Active session linked details
   const activeLinkedTask = activeSession?.task_id
@@ -514,7 +551,85 @@ export function ProjectWorkspace({
             onSubtasksChange={updateTaskSubtasks}
             onStatusChange={handleStatusChange}
             deletingTaskId={deletingTaskId}
+            taskNotesCountMap={taskNotesCountMap}
+            onDocumentTechnicalIssue={(t) => setDocumentingTask(t)}
           />
+        )}
+      </div>
+
+      {/* Technical Knowledge Section */}
+      <div className="devflow-project-workspace-section">
+        <div className="devflow-project-workspace-section-header">
+          <div className="flex items-center gap-2">
+            <BookOpen className="size-4 text-accent shrink-0" />
+            <h2 className="text-base font-bold text-foreground">Technical Knowledge</h2>
+            {projectNotes.length > 0 && (
+              <span className="devflow-filter-count">{projectNotes.length}</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleViewAllKnowledge}
+              className="text-xs text-muted-foreground hover:text-foreground h-8 px-2.5 gap-1"
+            >
+              <span>View all knowledge</span>
+              <ChevronRight className="size-3.5" />
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCreateNoteOpen(true)}
+              className="h-8 px-3 text-xs gap-1.5"
+            >
+              <Plus className="size-3.5" />
+              <span>New Note</span>
+            </Button>
+          </div>
+        </div>
+
+        {projectNotes.length === 0 ? (
+          <div className="devflow-knowledge-empty py-8">
+            <BookOpen className="devflow-knowledge-empty-icon size-6" />
+            <h3 className="text-sm font-semibold text-foreground">
+              No technical notes for this project yet
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-sm text-center">
+              Capture engineering decisions, debugging investigations, and solutions specific to {project.name}.
+            </p>
+            <Button
+              type="button"
+              className="devflow-btn-primary mt-1 gap-1.5 h-8 px-3.5 text-xs"
+              onClick={() => setIsCreateNoteOpen(true)}
+            >
+              <Plus className="size-3.5" />
+              <span>Create Note</span>
+            </Button>
+          </div>
+        ) : (
+          <div className="devflow-project-knowledge-grid">
+            {projectNotes.slice(0, 6).map((note) => {
+              const taskTitle = note.task_id
+                ? tasks.find((t) => t.id === note.task_id)?.title
+                : null;
+              return (
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  projectName={project.name}
+                  projectColor={project.color}
+                  taskTitle={taskTitle}
+                  onSelect={() => handleOpenNote(note.id)}
+                  onTogglePin={(id, isPinned) => void togglePinNote(id, isPinned)}
+                />
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -611,6 +726,43 @@ export function ProjectWorkspace({
         timeStats={editingTask ? taskTimeMap[editingTask.id] : undefined}
         activeSession={activeSession}
         onStartSession={handleStartSession}
+        taskNotes={editingTask ? taskNotesMap[editingTask.id] || [] : []}
+        onDocumentTechnicalIssue={(t) => setDocumentingTask(t)}
+        onOpenNote={handleOpenNote}
+      />
+
+      {/* New Project Note Modal */}
+      <NoteModal
+        isOpen={isCreateNoteOpen}
+        onClose={() => setIsCreateNoteOpen(false)}
+        projects={projects}
+        tasks={tasks}
+        initialProjectId={project.id}
+        onSubmit={async (input) => {
+          const res = await createNote(input as CreateKnowledgeNoteInput);
+          if (res.error) {
+            setActionError(res.error.message);
+          }
+          return res;
+        }}
+      />
+
+      {/* Document Technical Issue Modal */}
+      <NoteModal
+        isOpen={Boolean(documentingTask)}
+        onClose={() => setDocumentingTask(null)}
+        projects={projects}
+        tasks={tasks}
+        initialProjectId={documentingTask?.project_id || project.id}
+        initialTaskId={documentingTask?.id}
+        initialTitle={documentingTask?.title}
+        onSubmit={async (input) => {
+          const res = await createNote(input as CreateKnowledgeNoteInput);
+          if (res.error) {
+            setActionError(res.error.message);
+          }
+          return res;
+        }}
       />
 
       {/* Task Completion Decision Prompt */}

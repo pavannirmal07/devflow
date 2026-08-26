@@ -19,6 +19,7 @@ import { DashboardPage } from "@/features/dashboard";
 import { SessionsPage, useSessions } from "@/features/sessions";
 import { ProjectsPage, useProjects } from "@/features/projects";
 import { TasksPage, useTasks } from "@/features/tasks";
+import { KnowledgePage, useKnowledge, NoteModal, type CreateKnowledgeNoteInput } from "@/features/knowledge";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { CommandPalette } from "@/components/command";
 import type { DevTask } from "@/features/tasks/types";
@@ -55,7 +56,12 @@ const NAV_ITEMS: NavItem[] = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-function getNavFromHash(): { nav: NavItemId; projectId?: string; taskId?: string } {
+function getNavFromHash(): {
+  nav: NavItemId;
+  projectId?: string;
+  taskId?: string;
+  noteId?: string;
+} {
   if (typeof window === "undefined") return { nav: "dashboard" };
   const rawHash = window.location.hash.replace(/^#\/?/, "");
   const [pathPart, queryPart] = rawHash.split("?");
@@ -64,9 +70,15 @@ function getNavFromHash(): { nav: NavItemId; projectId?: string; taskId?: string
   const matched = NAV_ITEMS.find((item) => item.id === normalizedNav);
 
   let taskId: string | undefined;
+  let noteId: string | undefined;
   if (queryPart) {
     const params = new URLSearchParams(queryPart);
     taskId = params.get("task") || undefined;
+    noteId = params.get("note") || undefined;
+  }
+
+  if (normalizedNav === "knowledge" && idPart) {
+    noteId = idPart;
   }
 
   return {
@@ -76,6 +88,7 @@ function getNavFromHash(): { nav: NavItemId; projectId?: string; taskId?: string
         ? idPart
         : undefined,
     taskId,
+    noteId,
   };
 }
 
@@ -108,15 +121,18 @@ export function AppShell({
     nav: NavItemId;
     projectId?: string;
     taskId?: string;
+    noteId?: string;
   }>(() => getNavFromHash());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [isCreateNoteOpen, setIsCreateNoteOpen] = useState(false);
 
   // Global state hooks for command palette
   const { projects } = useProjects(userId);
   const { tasks, createTask, refreshTasks } = useTasks(userId);
   const { activeSession, startSession } = useSessions(userId);
+  const { notes: knowledgeNotes, createNote: createKnowledgeNote } = useKnowledge(userId);
 
   const activeNav = navState.nav;
 
@@ -155,14 +171,26 @@ export function AppShell({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleSelectNav = (id: NavItemId, param?: string, taskId?: string) => {
-    setNavState({ nav: id, projectId: param, taskId });
+  const handleSelectNav = (
+    id: NavItemId,
+    param?: string,
+    taskId?: string,
+    noteId?: string
+  ) => {
+    setNavState({
+      nav: id,
+      projectId: id === "projects" ? param : undefined,
+      taskId,
+      noteId: id === "knowledge" ? param || noteId : undefined,
+    });
     let newHash = `#${id}`;
     if (id === "projects" && param) {
       newHash = `#projects/${param}`;
       if (taskId) {
         newHash += `?task=${encodeURIComponent(taskId)}`;
       }
+    } else if (id === "knowledge" && (param || noteId)) {
+      newHash = `#knowledge/${encodeURIComponent(param || noteId || "")}`;
     } else if (id === "tasks" && taskId) {
       newHash += `?task=${encodeURIComponent(taskId)}`;
     }
@@ -335,6 +363,35 @@ export function AppShell({
               <TasksPage
                 userId={userId}
                 highlightTaskId={navState.taskId || null}
+                onNavigateToKnowledge={(noteId) => {
+                  if (noteId) {
+                    handleSelectNav("knowledge", noteId);
+                  } else {
+                    handleSelectNav("knowledge");
+                  }
+                }}
+              />
+            ) : activeNav === "knowledge" && userId ? (
+              <KnowledgePage
+                userId={userId}
+                selectedNoteId={navState.noteId || null}
+                onSelectNote={(noteId) => {
+                  if (noteId) {
+                    setNavState({ nav: "knowledge", noteId });
+                    window.history.pushState(null, "", `#knowledge/${noteId}`);
+                  } else {
+                    setNavState({ nav: "knowledge", noteId: undefined });
+                    window.history.pushState(null, "", `#knowledge`);
+                  }
+                }}
+                onNavigateToProject={(projId) => handleSelectNav("projects", projId)}
+                onNavigateToTask={(tId, pId) => {
+                  if (pId) {
+                    handleSelectNav("projects", pId, tId);
+                  } else {
+                    handleSelectNav("tasks", undefined, tId);
+                  }
+                }}
               />
             ) : (
               <div className="devflow-placeholder-card">
@@ -354,10 +411,12 @@ export function AppShell({
         onClose={() => setIsCommandPaletteOpen(false)}
         tasks={tasks}
         projects={projects}
+        knowledgeNotes={knowledgeNotes}
         activeSession={activeSession}
         onNavigate={handleSelectNav}
         onStartFocus={handleStartFocusFromPalette}
         onCreateTask={() => setIsCreateTaskOpen(true)}
+        onCreateNote={() => setIsCreateNoteOpen(true)}
       />
 
       {/* Global Create Task Modal */}
@@ -366,6 +425,17 @@ export function AppShell({
         projects={projects}
         onClose={() => setIsCreateTaskOpen(false)}
         onSubmit={createTask}
+      />
+
+      {/* Global Create Technical Note Modal */}
+      <NoteModal
+        isOpen={isCreateNoteOpen}
+        projects={projects}
+        tasks={tasks}
+        onClose={() => setIsCreateNoteOpen(false)}
+        onSubmit={async (input) => {
+          return createKnowledgeNote(input as CreateKnowledgeNoteInput);
+        }}
       />
     </div>
   );
