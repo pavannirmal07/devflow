@@ -9,9 +9,6 @@ export interface ThemeContextValue {
 
 export const THEME_STORAGE_KEY = "devflow_theme_mode";
 
-/**
- * Reads the stored theme mode preference from localStorage with safe fallback.
- */
 export function getStoredTheme(): ThemeMode {
   if (typeof window === "undefined") {
     return "system";
@@ -27,9 +24,6 @@ export function getStoredTheme(): ThemeMode {
   return "system";
 }
 
-/**
- * Persists the theme mode preference into localStorage safely.
- */
 export function setStoredTheme(mode: ThemeMode): void {
   if (typeof window === "undefined") return;
   try {
@@ -39,9 +33,6 @@ export function setStoredTheme(mode: ThemeMode): void {
   }
 }
 
-/**
- * Detects the operating system's color scheme preference.
- */
 export function getSystemTheme(): ResolvedTheme {
   if (typeof window === "undefined" || !window.matchMedia) {
     return "dark";
@@ -51,19 +42,6 @@ export function getSystemTheme(): ResolvedTheme {
     : "light";
 }
 
-/**
- * Resolves a ThemeMode ("system" | "light" | "dark") to an actual "light" | "dark" theme.
- */
-export function resolveTheme(mode: ThemeMode): ResolvedTheme {
-  if (mode === "system") {
-    return getSystemTheme();
-  }
-  return mode;
-}
-
-/**
- * Applies the resolved theme to the DOM (adds/removes .dark class on <html> and sets colorScheme).
- */
 export function applyThemeToDOM(resolvedTheme: ResolvedTheme): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;

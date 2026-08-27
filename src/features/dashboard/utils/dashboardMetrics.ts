@@ -116,23 +116,18 @@ export function deriveDashboardAgenda(
   const todayTasks: DevTask[] = [];
   const priorityTasks: DevTask[] = [];
 
-  const seenIds = new Set<string>();
-
   for (const task of tasks) {
     if (task.status === "completed") continue;
 
     if (isTaskOverdue(task, now)) {
       overdueTasks.push(task);
-      seenIds.add(task.id);
     } else if (isTaskDueToday(task, now)) {
       todayTasks.push(task);
-      seenIds.add(task.id);
     } else if (
       task.status === "in_progress" &&
       (task.priority === "critical" || task.priority === "high")
     ) {
       priorityTasks.push(task);
-      seenIds.add(task.id);
     }
   }
 

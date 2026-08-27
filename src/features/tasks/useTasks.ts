@@ -103,87 +103,94 @@ export function useTasks(userId?: string) {
     }));
   }, []);
 
-  const createTask = async (
-    input: CreateTaskInput
-  ): Promise<{ task: DevTask | null; error: Error | null }> => {
-    if (!userId) {
-      const err = new Error("User must be authenticated to create a task");
-      setError(err.message);
-      return { task: null, error: err };
-    }
+  const createTask = useCallback(
+    async (
+      input: CreateTaskInput
+    ): Promise<{ task: DevTask | null; error: Error | null }> => {
+      if (!userId) {
+        const err = new Error("User must be authenticated to create a task");
+        setError(err.message);
+        return { task: null, error: err };
+      }
 
-    const { task: newTask, error: createError } = await createTaskApi(
-      userId,
-      input
-    );
+      const { task: newTask, error: createError } = await createTaskApi(
+        userId,
+        input
+      );
 
-    if (createError) {
-      setError(createError.message);
-      return { task: null, error: createError };
-    }
+      if (createError) {
+        setError(createError.message);
+        return { task: null, error: createError };
+      }
 
-    if (newTask) {
-      setTasks((prev) => [
-        newTask,
-        ...prev.filter((t) => t.id !== newTask.id),
-      ]);
-      setError(null);
-    }
+      if (newTask) {
+        setTasks((prev) => [
+          newTask,
+          ...prev.filter((t) => t.id !== newTask.id),
+        ]);
+        setError(null);
+      }
 
-    return { task: newTask, error: null };
-  };
+      return { task: newTask, error: null };
+    },
+    [userId]
+  );
 
-  const updateTask = async (
-    taskId: string,
-    input: UpdateTaskInput
-  ): Promise<{ task: DevTask | null; error: Error | null }> => {
-    const { task: updatedTask, error: updateError } = await updateTaskApi(
-      taskId,
-      input
-    );
+  const updateTask = useCallback(
+    async (
+      taskId: string,
+      input: UpdateTaskInput
+    ): Promise<{ task: DevTask | null; error: Error | null }> => {
+      const { task: updatedTask, error: updateError } = await updateTaskApi(
+        taskId,
+        input
+      );
 
-    if (updateError) {
-      setError(updateError.message);
-      return { task: null, error: updateError };
-    }
+      if (updateError) {
+        setError(updateError.message);
+        return { task: null, error: updateError };
+      }
 
-    if (updatedTask) {
-      setTasks((prev) => {
-        const updatedList = prev.map((t) =>
-          t.id === taskId ? updatedTask : t
-        );
-        return updatedList.sort(
-          (a, b) =>
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        );
+      if (updatedTask) {
+        setTasks((prev) => {
+          const updatedList = prev.map((t) =>
+            t.id === taskId ? updatedTask : t
+          );
+          return updatedList.sort(
+            (a, b) =>
+              new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          );
+        });
+        setError(null);
+      }
+
+      return { task: updatedTask, error: null };
+    },
+    []
+  );
+
+  const deleteTask = useCallback(
+    async (taskId: string): Promise<{ error: Error | null }> => {
+      const { error: deleteError } = await deleteTaskApi(taskId);
+
+      if (deleteError) {
+        setError(deleteError.message);
+        return { error: deleteError };
+      }
+
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      setSubtasksMap((prev) => {
+        const next = { ...prev };
+        delete next[taskId];
+        return next;
       });
       setError(null);
-    }
+      return { error: null };
+    },
+    []
+  );
 
-    return { task: updatedTask, error: null };
-  };
-
-  const deleteTask = async (
-    taskId: string
-  ): Promise<{ error: Error | null }> => {
-    const { error: deleteError } = await deleteTaskApi(taskId);
-
-    if (deleteError) {
-      setError(deleteError.message);
-      return { error: deleteError };
-    }
-
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    setSubtasksMap((prev) => {
-      const next = { ...prev };
-      delete next[taskId];
-      return next;
-    });
-    setError(null);
-    return { error: null };
-  };
-
-  const refreshTasks = async (): Promise<void> => {
+  const refreshTasks = useCallback(async (): Promise<void> => {
     if (!userId) return;
 
     setLoading(true);
@@ -227,7 +234,7 @@ export function useTasks(userId?: string) {
       setTaskTimeMap(timeRes.timeStatsMap || {});
     }
     setLoading(false);
-  };
+  }, [userId]);
 
   return {
     tasks: userId ? tasks : [],

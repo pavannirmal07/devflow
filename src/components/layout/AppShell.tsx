@@ -20,7 +20,7 @@ import { DashboardPage } from "@/features/dashboard";
 import { SessionsPage, useSessions } from "@/features/sessions";
 import { ProjectsPage, useProjects } from "@/features/projects";
 import { TasksPage, useTasks } from "@/features/tasks";
-import { KnowledgePage, useKnowledge, NoteModal, type CreateKnowledgeNoteInput } from "@/features/knowledge";
+import { KnowledgePage, useKnowledge, NoteModal } from "@/features/knowledge";
 import { SettingsPage } from "@/features/settings";
 import { AboutPage } from "@/features/about";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
@@ -451,7 +451,7 @@ export function AppShell({
         tasks={tasks}
         onClose={() => setIsCreateNoteOpen(false)}
         onSubmit={async (input) => {
-          return createKnowledgeNote(input as CreateKnowledgeNoteInput);
+          return createKnowledgeNote(input);
         }}
       />
     </div>

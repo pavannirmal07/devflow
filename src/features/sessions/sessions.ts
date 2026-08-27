@@ -31,29 +31,6 @@ export async function getSessions(
   }
 }
 
-export async function getSessionById(
-  sessionId: string
-): Promise<{ session: DevSession | null; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from("sessions")
-      .select("id, user_id, task_id, title, description, status, started_at, ended_at, duration_seconds, accumulated_seconds, last_resumed_at, created_at, updated_at")
-      .eq("id", sessionId)
-      .maybeSingle();
-
-    if (error) {
-      return { session: null, error: new Error(error.message) };
-    }
-
-    return { session: data as DevSession | null, error: null };
-  } catch (err) {
-    return {
-      session: null,
-      error: err instanceof Error ? err : new Error("Failed to fetch session"),
-    };
-  }
-}
-
 export async function createSession(
   _userId: string,
   input: CreateSessionInput

@@ -33,29 +33,6 @@ export async function getKnowledgeNotes(
   }
 }
 
-export async function getKnowledgeNoteById(
-  noteId: string
-): Promise<{ note: KnowledgeNote | null; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from("knowledge_notes")
-      .select(NOTE_COLUMNS)
-      .eq("id", noteId)
-      .maybeSingle();
-
-    if (error) {
-      return { note: null, error: new Error(error.message) };
-    }
-
-    return { note: data as KnowledgeNote | null, error: null };
-  } catch (err) {
-    return {
-      note: null,
-      error: err instanceof Error ? err : new Error("Failed to fetch knowledge note"),
-    };
-  }
-}
-
 export async function createKnowledgeNote(
   userId: string,
   input: CreateKnowledgeNoteInput

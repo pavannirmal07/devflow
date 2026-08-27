@@ -37,7 +37,7 @@ export function TaskTimeSection({
     activeSession?.task_id === task.id && activeSession.status === "paused";
 
   // Re-render every second when this task has an active running session for 100% live precision
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
   useEffect(() => {
     if (!isThisTaskSessionActive) return;
     const interval = setInterval(() => {
@@ -73,12 +73,10 @@ export function TaskTimeSection({
     return list;
   }, [timeStats, activeSession, task.id]);
 
-  const liveTotalSeconds = useMemo(() => {
-    void tick;
-    return combinedSessions.reduce((acc, sess) => acc + computeSessionDuration(sess), 0);
-  }, [combinedSessions, tick]);
-
-
+  const liveTotalSeconds = combinedSessions.reduce(
+    (acc, sess) => acc + computeSessionDuration(sess),
+    0
+  );
 
   const totalSessionCount = combinedSessions.length;
 

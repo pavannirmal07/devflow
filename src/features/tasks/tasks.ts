@@ -26,29 +26,6 @@ export async function getTasks(
   }
 }
 
-export async function getTaskById(
-  taskId: string
-): Promise<{ task: DevTask | null; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from("tasks")
-      .select(TASK_COLUMNS)
-      .eq("id", taskId)
-      .maybeSingle();
-
-    if (error) {
-      return { task: null, error: new Error(error.message) };
-    }
-
-    return { task: data as DevTask | null, error: null };
-  } catch (err) {
-    return {
-      task: null,
-      error: err instanceof Error ? err : new Error("Failed to fetch task"),
-    };
-  }
-}
-
 export async function createTask(
   userId: string,
   input: CreateTaskInput

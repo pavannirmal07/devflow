@@ -379,8 +379,16 @@ function EditTaskModalForm({
                         onClose();
                         onOpenNote?.(n.id);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onClose();
+                          onOpenNote?.(n.id);
+                        }
+                      }}
                       role="button"
                       tabIndex={0}
+                      aria-label={`Open note: ${n.title}`}
                     >
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <span
