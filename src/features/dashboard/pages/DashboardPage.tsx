@@ -2,11 +2,11 @@ import { useMemo, useState } from "react";
 import { AlertCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { useSessions } from "../../sessions/useSessions";
 import {
-  useSessions,
   TaskCompletionPrompt,
   type TaskCompletionPromptState,
-} from "../../sessions";
+} from "../../sessions/components/TaskCompletionPrompt";
 import { useTasks } from "../../tasks/useTasks";
 import { useProjects } from "../../projects/useProjects";
 import { useFocusGoal } from "../hooks/useFocusGoal";

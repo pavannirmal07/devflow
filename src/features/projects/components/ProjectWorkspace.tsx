@@ -20,8 +20,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { GitHubIcon } from "@/features/github/components/GitHubIcon";
 import { useTasks } from "@/features/tasks/useTasks";
-import { useSessions, TaskCompletionPrompt, type TaskCompletionPromptState } from "@/features/sessions";
-import { useKnowledge, NoteModal, NoteCard, type KnowledgeNote } from "@/features/knowledge";
+import { useSessions } from "@/features/sessions/useSessions";
+import { TaskCompletionPrompt, type TaskCompletionPromptState } from "@/features/sessions/components/TaskCompletionPrompt";
+import { useKnowledge } from "@/features/knowledge/useKnowledge";
+import { NoteModal } from "@/features/knowledge/components/NoteModal";
+import { NoteCard } from "@/features/knowledge/components/NoteCard";
+import type { KnowledgeNote } from "@/features/knowledge/types";
 import { TaskBoard } from "@/features/tasks/components/TaskBoard";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { EditTaskModal } from "@/features/tasks/components/EditTaskModal";

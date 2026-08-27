@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useKnowledge } from "../useKnowledge";
-import { useProjects } from "@/features/projects";
-import { useTasks } from "@/features/tasks";
+import { useProjects } from "@/features/projects/useProjects";
+import { useTasks } from "@/features/tasks/useTasks";
 import { NoteCard } from "../components/NoteCard";
 import { NoteDetail } from "../components/NoteDetail";
 import { NoteModal } from "../components/NoteModal";
