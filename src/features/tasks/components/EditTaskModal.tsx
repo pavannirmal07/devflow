@@ -10,6 +10,7 @@ import { SubtaskList } from "./SubtaskList";
 import { TaskTimeSection } from "./TaskTimeSection";
 import { TaskGitHubSection } from "../../github/components/TaskGitHubSection";
 import type { TaskGitHubLink } from "../../github/types";
+import "../tasks.css";
 
 export interface EditTaskModalProps {
   task: DevTask | null;

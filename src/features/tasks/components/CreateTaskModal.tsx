@@ -14,6 +14,7 @@ import { getIssues } from "@/features/github/githubApi";
 import { linkGitHubItemToTask } from "@/features/github/github";
 import type { GitHubIssue, TaskGitHubLink } from "@/features/github/types";
 import { GitHubIcon } from "@/features/github/components/GitHubIcon";
+import "../tasks.css";
 
 export interface CreateTaskModalProps {
   isOpen: boolean;

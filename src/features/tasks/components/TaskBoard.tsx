@@ -4,6 +4,7 @@ import type { DevTask, TaskStatus, TaskSubtask, TaskTimeStats } from "../types";
 import type { TaskGitHubLink } from "../../github/types";
 import type { DevSession } from "../../sessions/types";
 import { TaskCard } from "./TaskCard";
+import "../tasks.css";
 
 export interface TaskBoardProps {
   tasks: DevTask[];

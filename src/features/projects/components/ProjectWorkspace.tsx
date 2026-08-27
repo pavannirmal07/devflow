@@ -36,6 +36,7 @@ import { deriveProjectMetrics } from "../utils/projectMetrics";
 import { formatProjectName } from "../utils/formatProjectName";
 import "@/features/dashboard/dashboard.css";
 import "@/features/knowledge/knowledge.css";
+import "@/features/tasks/tasks.css";
 
 const EditTaskModal = lazy(() =>
   import("@/features/tasks/components/EditTaskModal").then((module) => ({
