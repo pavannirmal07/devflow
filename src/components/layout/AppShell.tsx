@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import type { ComponentType, ReactNode } from "react";
 import {
   LayoutDashboard,
@@ -16,17 +16,72 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DashboardPage } from "@/features/dashboard";
-import { SessionsPage, useSessions } from "@/features/sessions";
-import { ProjectsPage, useProjects } from "@/features/projects";
-import { TasksPage, useTasks } from "@/features/tasks";
-import { KnowledgePage, useKnowledge, NoteModal } from "@/features/knowledge";
-import { SettingsPage } from "@/features/settings";
-import { AboutPage } from "@/features/about";
+import { useSessions } from "@/features/sessions/useSessions";
+import { useProjects } from "@/features/projects/useProjects";
+import { useTasks } from "@/features/tasks/useTasks";
+import { useKnowledge } from "@/features/knowledge/useKnowledge";
+import { NoteModal } from "@/features/knowledge/components/NoteModal";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { CommandPalette } from "@/components/command";
 import type { DevTask } from "@/features/tasks/types";
 import "./AppShell.css";
+
+const DashboardPage = lazy(() =>
+  import("@/features/dashboard/pages/DashboardPage").then((module) => ({
+    default: module.DashboardPage,
+  }))
+);
+
+const ProjectsPage = lazy(() =>
+  import("@/features/projects/pages/ProjectsPage").then((module) => ({
+    default: module.ProjectsPage,
+  }))
+);
+
+const TasksPage = lazy(() =>
+  import("@/features/tasks/pages/TasksPage").then((module) => ({
+    default: module.TasksPage,
+  }))
+);
+
+const SessionsPage = lazy(() =>
+  import("@/features/sessions/pages/SessionsPage").then((module) => ({
+    default: module.SessionsPage,
+  }))
+);
+
+const KnowledgePage = lazy(() =>
+  import("@/features/knowledge/pages/KnowledgePage").then((module) => ({
+    default: module.KnowledgePage,
+  }))
+);
+
+const SettingsPage = lazy(() =>
+  import("@/features/settings/pages/SettingsPage").then((module) => ({
+    default: module.SettingsPage,
+  }))
+);
+
+const AboutPage = lazy(() =>
+  import("@/features/about/pages/AboutPage").then((module) => ({
+    default: module.AboutPage,
+  }))
+);
+
+function PageLoadingFallback() {
+  return (
+    <div
+      className="flex items-center justify-center p-12 min-h-75"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="flex items-center gap-2.5 text-muted-foreground text-sm font-medium">
+        <Zap className="size-4 animate-pulse text-accent shrink-0" />
+        <span>Loading...</span>
+      </div>
+    </div>
+  );
+}
 
 export interface AppShellProps {
   userId?: string;
@@ -346,77 +401,80 @@ export function AppShell({
 
         {/* Main Content Area */}
         <main className="devflow-main">
-          {children ||
-            (activeNav === "dashboard" && userId ? (
-              <DashboardPage
-                userId={userId}
-                userName={userName}
-                onNavigate={handleSelectNav}
-              />
-            ) : activeNav === "sessions" && userId ? (
-              <SessionsPage userId={userId} />
-            ) : activeNav === "projects" && userId ? (
-              <ProjectsPage
-                userId={userId}
-                selectedProjectId={navState.projectId || null}
-                highlightTaskId={navState.taskId || null}
-                onSelectProject={(projId) => {
-                  if (projId) {
-                    setNavState({ nav: "projects", projectId: projId, taskId: undefined });
-                    window.history.pushState(null, "", `#projects/${projId}`);
-                  } else {
-                    setNavState({ nav: "projects", projectId: undefined, taskId: undefined });
-                    window.history.pushState(null, "", `#projects`);
-                  }
-                }}
-              />
-            ) : activeNav === "tasks" && userId ? (
-              <TasksPage
-                userId={userId}
-                highlightTaskId={navState.taskId || null}
-                onNavigateToKnowledge={(noteId) => {
-                  if (noteId) {
-                    handleSelectNav("knowledge", noteId);
-                  } else {
-                    handleSelectNav("knowledge");
-                  }
-                }}
-              />
-            ) : activeNav === "knowledge" && userId ? (
-              <KnowledgePage
-                userId={userId}
-                selectedNoteId={navState.noteId || null}
-                onSelectNote={(noteId) => {
-                  if (noteId) {
-                    setNavState({ nav: "knowledge", noteId });
-                    window.history.pushState(null, "", `#knowledge/${noteId}`);
-                  } else {
-                    setNavState({ nav: "knowledge", noteId: undefined });
-                    window.history.pushState(null, "", `#knowledge`);
-                  }
-                }}
-                onNavigateToProject={(projId) => handleSelectNav("projects", projId)}
-                onNavigateToTask={(tId, pId) => {
-                  if (pId) {
-                    handleSelectNav("projects", pId, tId);
-                  } else {
-                    handleSelectNav("tasks", undefined, tId);
-                  }
-                }}
-              />
-            ) : activeNav === "settings" ? (
-              <SettingsPage />
-            ) : activeNav === "about" ? (
-              <AboutPage />
-            ) : (
-              <div className="devflow-placeholder-card">
-                <h2>{activeItem?.label}</h2>
-                <p>
-                  This section is currently under development. Selected tab:{" "}
-                  <code>{activeNav}</code>
-                </p>
-              </div>
-            ))}
+          {children || (
+            <Suspense fallback={<PageLoadingFallback />}>
+              {activeNav === "dashboard" && userId ? (
+                <DashboardPage
+                  userId={userId}
+                  userName={userName}
+                  onNavigate={handleSelectNav}
+                />
+              ) : activeNav === "sessions" && userId ? (
+                <SessionsPage userId={userId} />
+              ) : activeNav === "projects" && userId ? (
+                <ProjectsPage
+                  userId={userId}
+                  selectedProjectId={navState.projectId || null}
+                  highlightTaskId={navState.taskId || null}
+                  onSelectProject={(projId) => {
+                    if (projId) {
+                      setNavState({ nav: "projects", projectId: projId, taskId: undefined });
+                      window.history.pushState(null, "", `#projects/${projId}`);
+                    } else {
+                      setNavState({ nav: "projects", projectId: undefined, taskId: undefined });
+                      window.history.pushState(null, "", `#projects`);
+                    }
+                  }}
+                />
+              ) : activeNav === "tasks" && userId ? (
+                <TasksPage
+                  userId={userId}
+                  highlightTaskId={navState.taskId || null}
+                  onNavigateToKnowledge={(noteId) => {
+                    if (noteId) {
+                      handleSelectNav("knowledge", noteId);
+                    } else {
+                      handleSelectNav("knowledge");
+                    }
+                  }}
+                />
+              ) : activeNav === "knowledge" && userId ? (
+                <KnowledgePage
+                  userId={userId}
+                  selectedNoteId={navState.noteId || null}
+                  onSelectNote={(noteId) => {
+                    if (noteId) {
+                      setNavState({ nav: "knowledge", noteId });
+                      window.history.pushState(null, "", `#knowledge/${noteId}`);
+                    } else {
+                      setNavState({ nav: "knowledge", noteId: undefined });
+                      window.history.pushState(null, "", `#knowledge`);
+                    }
+                  }}
+                  onNavigateToProject={(projId) => handleSelectNav("projects", projId)}
+                  onNavigateToTask={(tId, pId) => {
+                    if (pId) {
+                      handleSelectNav("projects", pId, tId);
+                    } else {
+                      handleSelectNav("tasks", undefined, tId);
+                    }
+                  }}
+                />
+              ) : activeNav === "settings" ? (
+                <SettingsPage />
+              ) : activeNav === "about" ? (
+                <AboutPage />
+              ) : (
+                <div className="devflow-placeholder-card">
+                  <h2>{activeItem?.label}</h2>
+                  <p>
+                    This section is currently under development. Selected tab:{" "}
+                    <code>{activeNav}</code>
+                  </p>
+                </div>
+              )}
+            </Suspense>
+          )}
         </main>
       </div>
 

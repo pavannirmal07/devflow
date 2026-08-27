@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Plus, Timer, AlertCircle, RefreshCw, X, Check, Pause, Play, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useTasks } from "@/features/tasks";
+import { useTasks } from "@/features/tasks/useTasks";
 import { useSessions } from "../useSessions";
 import { SessionTimer } from "../components/SessionTimer";
 import { SessionCard } from "../components/SessionCard";

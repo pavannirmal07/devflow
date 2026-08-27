@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { Plus, ListTodo, AlertCircle, RefreshCw, LayoutList, Columns3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useProjects } from "@/features/projects";
-import { useSessions } from "@/features/sessions";
-import { useKnowledge, NoteModal, type CreateKnowledgeNoteInput, type KnowledgeNote } from "@/features/knowledge";
+import { useProjects } from "@/features/projects/useProjects";
+import { useSessions } from "@/features/sessions/useSessions";
+import { useKnowledge } from "@/features/knowledge/useKnowledge";
+import { NoteModal } from "@/features/knowledge/components/NoteModal";
+import type { CreateKnowledgeNoteInput, KnowledgeNote } from "@/features/knowledge/types";
 import { useTasks } from "../useTasks";
 import { TaskCard } from "../components/TaskCard";
 import { TaskBoard } from "../components/TaskBoard";
