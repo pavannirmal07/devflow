@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { Plus, ListTodo, AlertCircle, RefreshCw, LayoutList, Columns3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/features/projects/useProjects";
@@ -10,10 +10,15 @@ import { useTasks } from "../useTasks";
 import { TaskCard } from "../components/TaskCard";
 import { TaskBoard } from "../components/TaskBoard";
 import { CreateTaskModal } from "../components/CreateTaskModal";
-import { EditTaskModal } from "../components/EditTaskModal";
 import type { DevTask, TaskDueDateFilter, TaskStatus } from "../types";
 import { isTaskDueThisWeek, isTaskDueToday, isTaskOverdue } from "../utils/dueDate";
 import "../tasks.css";
+
+const EditTaskModal = lazy(() =>
+  import("../components/EditTaskModal").then((module) => ({
+    default: module.EditTaskModal,
+  }))
+);
 
 export interface TasksPageProps {
   userId: string;
@@ -515,23 +520,27 @@ export function TasksPage({ userId, highlightTaskId, onNavigateToKnowledge }: Ta
       />
 
       {/* Edit Task Modal */}
-      <EditTaskModal
-        task={editingTask}
-        projects={projects}
-        isOpen={Boolean(editingTask)}
-        onClose={() => setEditingTask(null)}
-        onSubmit={updateTask}
-        subtasks={editingTask ? subtasksMap[editingTask.id] || [] : []}
-        onSubtasksChange={updateTaskSubtasks}
-        githubLinks={editingTask ? githubLinksMap[editingTask.id] || [] : []}
-        onGitHubLinksChange={updateTaskGitHubLinks}
-        timeStats={editingTask ? taskTimeMap[editingTask.id] : undefined}
-        activeSession={activeSession}
-        onStartSession={handleStartFocusSession}
-        taskNotes={editingTask ? taskNotesMap[editingTask.id] || [] : []}
-        onDocumentTechnicalIssue={handleDocumentIssue}
-        onOpenNote={handleOpenNote}
-      />
+      {editingTask && (
+        <Suspense fallback={null}>
+          <EditTaskModal
+            task={editingTask}
+            projects={projects}
+            isOpen={Boolean(editingTask)}
+            onClose={() => setEditingTask(null)}
+            onSubmit={updateTask}
+            subtasks={subtasksMap[editingTask.id] || []}
+            onSubtasksChange={updateTaskSubtasks}
+            githubLinks={githubLinksMap[editingTask.id] || []}
+            onGitHubLinksChange={updateTaskGitHubLinks}
+            timeStats={taskTimeMap[editingTask.id]}
+            activeSession={activeSession}
+            onStartSession={handleStartFocusSession}
+            taskNotes={taskNotesMap[editingTask.id] || []}
+            onDocumentTechnicalIssue={handleDocumentIssue}
+            onOpenNote={handleOpenNote}
+          />
+        </Suspense>
+      )}
 
       {/* Document Technical Issue Modal */}
       <NoteModal
