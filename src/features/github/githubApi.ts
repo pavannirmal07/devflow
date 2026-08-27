@@ -118,9 +118,7 @@ async function invokeGitHubFunction<T>(
   }
 }
 
-// ============================================================================
 // Public API Calls
-// ============================================================================
 
 export async function getInstallUrl(): Promise<{
   installUrl: string | null;
@@ -237,9 +235,9 @@ export async function getRepositories(
     };
   }
 
-  const { data, error } = await invokeGitHubFunction<{
-    repositories: GitHubRepository[];
-  }>("repositories", {
+  const { data, error } = await invokeGitHubFunction<
+    { repositories: GitHubRepository[] } | GitHubRepository[]
+  >("repositories", {
     installation_id: String(installationId),
   });
 
@@ -247,8 +245,12 @@ export async function getRepositories(
     return { repositories: [], error };
   }
 
+  const repos = Array.isArray(data)
+    ? data
+    : data?.repositories || [];
+
   return {
-    repositories: data?.repositories || (Array.isArray(data) ? (data as unknown as GitHubRepository[]) : []),
+    repositories: repos,
     error: null,
   };
 }

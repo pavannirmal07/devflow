@@ -14,12 +14,15 @@ export interface UseSubtasksOptions {
 }
 
 export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
+  const initialSubtasks = options?.initialSubtasks;
+  const onSubtasksChange = options?.onSubtasksChange;
+
   const [subtasks, setSubtasks] = useState<TaskSubtask[]>(() =>
-    options?.initialSubtasks
-      ? [...options.initialSubtasks].sort((a, b) => a.position - b.position)
+    initialSubtasks
+      ? [...initialSubtasks].sort((a, b) => a.position - b.position)
       : []
   );
-  const [loading, setLoading] = useState(Boolean(taskId && !options?.initialSubtasks));
+  const [loading, setLoading] = useState(Boolean(taskId && !initialSubtasks));
   const [error, setError] = useState<string | null>(null);
 
   const refreshSubtasks = useCallback(async () => {
@@ -33,14 +36,14 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
     } else {
       const sorted = (fetched || []).sort((a, b) => a.position - b.position);
       setSubtasks(sorted);
-      options?.onSubtasksChange?.(sorted);
+      onSubtasksChange?.(sorted);
       setError(null);
     }
     setLoading(false);
-  }, [taskId, options]);
+  }, [taskId, onSubtasksChange]);
 
   useEffect(() => {
-    if (!taskId || options?.initialSubtasks) {
+    if (!taskId || initialSubtasks) {
       return;
     }
 
@@ -55,7 +58,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
       } else {
         const sorted = (fetched || []).sort((a, b) => a.position - b.position);
         setSubtasks(sorted);
-        options?.onSubtasksChange?.(sorted);
+        onSubtasksChange?.(sorted);
         setError(null);
       }
       setLoading(false);
@@ -64,7 +67,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
     return () => {
       isMounted = false;
     };
-  }, [taskId, options]);
+  }, [taskId, initialSubtasks, onSubtasksChange]);
 
   const progress = useMemo<SubtaskProgress>(() => {
     const total = subtasks.length;
@@ -103,7 +106,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
       if (created) {
         setSubtasks((prev) => {
           const next = [...prev, created].sort((a, b) => a.position - b.position);
-          options?.onSubtasksChange?.(next);
+          onSubtasksChange?.(next);
           return next;
         });
         setError(null);
@@ -111,7 +114,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
 
       return { subtask: created, error: null };
     },
-    [taskId, options]
+    [taskId, onSubtasksChange]
   );
 
   const updateSubtask = useCallback(
@@ -141,7 +144,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
           const next = prev
             .map((s) => (s.id === subtaskId ? updated : s))
             .sort((a, b) => a.position - b.position);
-          options?.onSubtasksChange?.(next);
+          onSubtasksChange?.(next);
           return next;
         });
         setError(null);
@@ -149,7 +152,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
 
       return { subtask: updated, error: null };
     },
-    [options, refreshSubtasks]
+    [onSubtasksChange, refreshSubtasks]
   );
 
   const toggleSubtask = useCallback(
@@ -168,7 +171,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
       const previous = [...subtasks];
       setSubtasks((prev) => {
         const next = prev.filter((s) => s.id !== subtaskId);
-        options?.onSubtasksChange?.(next);
+        onSubtasksChange?.(next);
         return next;
       });
 
@@ -177,14 +180,14 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
       if (delErr) {
         setError(delErr.message);
         setSubtasks(previous);
-        options?.onSubtasksChange?.(previous);
+        onSubtasksChange?.(previous);
         return { error: delErr };
       }
 
       setError(null);
       return { error: null };
     },
-    [subtasks, options]
+    [subtasks, onSubtasksChange]
   );
 
   const moveSubtask = useCallback(
@@ -216,7 +219,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
 
       // Optimistic update
       setSubtasks(updatedList);
-      options?.onSubtasksChange?.(updatedList);
+      onSubtasksChange?.(updatedList);
 
       const subtaskIds = updatedList.map((s) => s.id);
       const { error: reorderErr } = await reorderSubtasksApi(taskId, subtaskIds);
@@ -231,7 +234,7 @@ export function useSubtasks(taskId?: string, options?: UseSubtasksOptions) {
       setError(null);
       return { error: null };
     },
-    [taskId, subtasks, options, refreshSubtasks]
+    [taskId, subtasks, onSubtasksChange, refreshSubtasks]
   );
 
   return {

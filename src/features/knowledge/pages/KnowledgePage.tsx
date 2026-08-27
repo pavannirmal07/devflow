@@ -20,7 +20,6 @@ import {
   type CreateKnowledgeNoteInput,
   type KnowledgeFilterCategory,
   type KnowledgeNote,
-  type UpdateKnowledgeNoteInput,
 } from "../types";
 import "../knowledge.css";
 
@@ -182,10 +181,10 @@ export function KnowledgePage({
   };
 
   const handleCreateSubmit = async (
-    input: CreateKnowledgeNoteInput | UpdateKnowledgeNoteInput
+    input: CreateKnowledgeNoteInput
   ) => {
     setActionError(null);
-    const res = await createNote(input as CreateKnowledgeNoteInput);
+    const res = await createNote(input);
     if (res.error) {
       setActionError(res.error.message);
     }
@@ -193,11 +192,11 @@ export function KnowledgePage({
   };
 
   const handleEditSubmit = async (
-    input: CreateKnowledgeNoteInput | UpdateKnowledgeNoteInput
+    input: CreateKnowledgeNoteInput
   ) => {
     if (!editingNote) return { note: null, error: new Error("No note selected for editing") };
     setActionError(null);
-    const res = await updateNote(editingNote.id, input as UpdateKnowledgeNoteInput);
+    const res = await updateNote(editingNote.id, input);
     if (res.error) {
       setActionError(res.error.message);
     } else {

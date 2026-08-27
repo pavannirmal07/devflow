@@ -137,7 +137,7 @@ devflow/
    Create a `.env.local` file in the root directory:
    ```env
    VITE_SUPABASE_URL=https://your-project-id.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+   VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
    ```
 
 4. **Start the development server:**

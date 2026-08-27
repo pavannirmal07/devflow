@@ -52,7 +52,7 @@ export function DashboardActiveSessionCard({
   const isRunning = activeSession?.status === "active";
 
   // Re-render tick every second when session is active for precision stopwatch
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
   useEffect(() => {
     if (!isRunning) return;
     const interval = setInterval(() => {
@@ -61,10 +61,7 @@ export function DashboardActiveSessionCard({
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  void tick;
-
   const currentDurationSeconds = activeSession
-
     ? computeSessionDuration(activeSession)
     : 0;
 

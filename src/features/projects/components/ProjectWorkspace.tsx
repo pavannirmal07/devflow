@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { GitHubIcon } from "@/features/github/components/GitHubIcon";
 import { useTasks } from "@/features/tasks/useTasks";
 import { useSessions, TaskCompletionPrompt, type TaskCompletionPromptState } from "@/features/sessions";
-import { useKnowledge, NoteModal, NoteCard, type CreateKnowledgeNoteInput, type KnowledgeNote } from "@/features/knowledge";
+import { useKnowledge, NoteModal, NoteCard, type KnowledgeNote } from "@/features/knowledge";
 import { TaskBoard } from "@/features/tasks/components/TaskBoard";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { EditTaskModal } from "@/features/tasks/components/EditTaskModal";
@@ -165,7 +165,7 @@ export function ProjectWorkspace({
       projectTasks.some((t) => t.id === activeSession.task_id)
   );
 
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
   useEffect(() => {
     if (!isProjectSessionActive) return;
     const interval = setInterval(() => {
@@ -175,10 +175,7 @@ export function ProjectWorkspace({
   }, [isProjectSessionActive]);
 
   // Derived in-memory metrics
-  const metrics = useMemo(() => {
-    void tick;
-    return deriveProjectMetrics(project.id, tasks, sessions, activeSession);
-  }, [project.id, tasks, sessions, activeSession, tick]);
+  const metrics = deriveProjectMetrics(project.id, tasks, sessions, activeSession);
 
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
     const target = tasks.find((t) => t.id === taskId);
@@ -741,7 +738,7 @@ export function ProjectWorkspace({
         tasks={tasks}
         initialProjectId={project.id}
         onSubmit={async (input) => {
-          const res = await createNote(input as CreateKnowledgeNoteInput);
+          const res = await createNote(input);
           if (res.error) {
             setActionError(res.error.message);
           }
@@ -759,7 +756,7 @@ export function ProjectWorkspace({
         initialTaskId={documentingTask?.id}
         initialTitle={documentingTask?.title}
         onSubmit={async (input) => {
-          const res = await createNote(input as CreateKnowledgeNoteInput);
+          const res = await createNote(input);
           if (res.error) {
             setActionError(res.error.message);
           }

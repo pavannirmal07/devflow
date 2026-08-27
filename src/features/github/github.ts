@@ -12,9 +12,7 @@ const INSTALLATION_COLUMNS =
 const LINK_COLUMNS =
   "id, task_id, link_type, github_id, name, url, metadata, created_at, updated_at";
 
-// ============================================================================
 // GitHub Installations (Supabase DB)
-// ============================================================================
 
 export async function getInstallations(
   userId: string
@@ -111,9 +109,7 @@ export async function deleteInstallation(
   }
 }
 
-// ============================================================================
 // Project GitHub Repository Association
-// ============================================================================
 
 export async function updateProjectGitHubRepo(
   projectId: string,
@@ -149,9 +145,7 @@ export async function updateProjectGitHubRepo(
   }
 }
 
-// ============================================================================
 // Task GitHub Links (Supabase DB)
-// ============================================================================
 
 export async function getTaskGitHubLinks(
   taskId: string

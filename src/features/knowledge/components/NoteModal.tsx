@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { KNOWLEDGE_CATEGORIES, type CreateKnowledgeNoteInput, type KnowledgeCategory, type KnowledgeNote, type UpdateKnowledgeNoteInput } from "../types";
+import { KNOWLEDGE_CATEGORIES, type CreateKnowledgeNoteInput, type KnowledgeCategory, type KnowledgeNote } from "../types";
 import type { DevProject } from "@/features/projects";
 import type { DevTask } from "@/features/tasks";
 
@@ -27,7 +27,7 @@ export interface NoteModalProps {
   initialTitle?: string;
   initialCategory?: KnowledgeCategory;
   onSubmit: (
-    input: CreateKnowledgeNoteInput | UpdateKnowledgeNoteInput
+    input: CreateKnowledgeNoteInput
   ) => Promise<{ note: KnowledgeNote | null; error: Error | null }>;
 }
 
@@ -71,7 +71,7 @@ interface NoteModalFormProps {
   initialCategory?: KnowledgeCategory;
   onClose: () => void;
   onSubmit: (
-    input: CreateKnowledgeNoteInput | UpdateKnowledgeNoteInput
+    input: CreateKnowledgeNoteInput
   ) => Promise<{ note: KnowledgeNote | null; error: Error | null }>;
 }
 

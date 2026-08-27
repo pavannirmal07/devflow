@@ -27,29 +27,6 @@ export async function getProjects(
   }
 }
 
-export async function getProjectById(
-  projectId: string
-): Promise<{ project: DevProject | null; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from("projects")
-      .select(PROJECT_COLUMNS)
-      .eq("id", projectId)
-      .maybeSingle();
-
-    if (error) {
-      return { project: null, error: new Error(error.message) };
-    }
-
-    return { project: data as DevProject | null, error: null };
-  } catch (err) {
-    return {
-      project: null,
-      error: err instanceof Error ? err : new Error("Failed to fetch project"),
-    };
-  }
-}
-
 export async function createProject(
   userId: string,
   input: CreateProjectInput
