@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -28,7 +28,6 @@ import { NoteCard } from "@/features/knowledge/components/NoteCard";
 import type { KnowledgeNote } from "@/features/knowledge/types";
 import { TaskBoard } from "@/features/tasks/components/TaskBoard";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
-import { EditTaskModal } from "@/features/tasks/components/EditTaskModal";
 import { DashboardActiveSessionCard } from "@/features/dashboard/components/DashboardActiveSessionCard";
 import type { DevTask, TaskStatus } from "@/features/tasks/types";
 import { formatDuration, computeSessionDuration } from "@/features/tasks/utils/duration";
@@ -37,6 +36,12 @@ import { deriveProjectMetrics } from "../utils/projectMetrics";
 import { formatProjectName } from "../utils/formatProjectName";
 import "@/features/dashboard/dashboard.css";
 import "@/features/knowledge/knowledge.css";
+
+const EditTaskModal = lazy(() =>
+  import("@/features/tasks/components/EditTaskModal").then((module) => ({
+    default: module.EditTaskModal,
+  }))
+);
 
 export interface ProjectWorkspaceProps {
   userId: string;
@@ -716,23 +721,27 @@ export function ProjectWorkspace({
       />
 
       {/* Edit Task Modal */}
-      <EditTaskModal
-        task={editingTask}
-        projects={projects}
-        isOpen={Boolean(editingTask)}
-        onClose={() => setEditingTask(null)}
-        onSubmit={updateTask}
-        subtasks={editingTask ? subtasksMap[editingTask.id] || [] : []}
-        onSubtasksChange={updateTaskSubtasks}
-        githubLinks={editingTask ? githubLinksMap[editingTask.id] || [] : []}
-        onGitHubLinksChange={updateTaskGitHubLinks}
-        timeStats={editingTask ? taskTimeMap[editingTask.id] : undefined}
-        activeSession={activeSession}
-        onStartSession={handleStartSession}
-        taskNotes={editingTask ? taskNotesMap[editingTask.id] || [] : []}
-        onDocumentTechnicalIssue={(t) => setDocumentingTask(t)}
-        onOpenNote={handleOpenNote}
-      />
+      {editingTask && (
+        <Suspense fallback={null}>
+          <EditTaskModal
+            task={editingTask}
+            projects={projects}
+            isOpen={Boolean(editingTask)}
+            onClose={() => setEditingTask(null)}
+            onSubmit={updateTask}
+            subtasks={editingTask ? subtasksMap[editingTask.id] || [] : []}
+            onSubtasksChange={updateTaskSubtasks}
+            githubLinks={editingTask ? githubLinksMap[editingTask.id] || [] : []}
+            onGitHubLinksChange={updateTaskGitHubLinks}
+            timeStats={editingTask ? taskTimeMap[editingTask.id] : undefined}
+            activeSession={activeSession}
+            onStartSession={handleStartSession}
+            taskNotes={editingTask ? taskNotesMap[editingTask.id] || [] : []}
+            onDocumentTechnicalIssue={(t) => setDocumentingTask(t)}
+            onOpenNote={handleOpenNote}
+          />
+        </Suspense>
+      )}
 
       {/* New Project Note Modal */}
       <NoteModal
