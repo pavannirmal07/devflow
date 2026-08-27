@@ -20,11 +20,26 @@ import { useSessions } from "@/features/sessions/useSessions";
 import { useProjects } from "@/features/projects/useProjects";
 import { useTasks } from "@/features/tasks/useTasks";
 import { useKnowledge } from "@/features/knowledge/useKnowledge";
-import { NoteModal } from "@/features/knowledge/components/NoteModal";
-import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
-import { CommandPalette } from "@/components/command";
 import type { DevTask } from "@/features/tasks/types";
 import "./AppShell.css";
+
+const CommandPalette = lazy(() =>
+  import("@/components/command/CommandPalette").then((module) => ({
+    default: module.CommandPalette,
+  }))
+);
+
+const CreateTaskModal = lazy(() =>
+  import("@/features/tasks/components/CreateTaskModal").then((module) => ({
+    default: module.CreateTaskModal,
+  }))
+);
+
+const NoteModal = lazy(() =>
+  import("@/features/knowledge/components/NoteModal").then((module) => ({
+    default: module.NoteModal,
+  }))
+);
 
 const DashboardPage = lazy(() =>
   import("@/features/dashboard/pages/DashboardPage").then((module) => ({
@@ -479,39 +494,51 @@ export function AppShell({
       </div>
 
       {/* Global Command Palette */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        tasks={tasks}
-        projects={projects}
-        knowledgeNotes={knowledgeNotes}
-        githubLinksMap={githubLinksMap}
-        activeSession={activeSession}
-        onNavigate={handleSelectNav}
-        onStartFocus={handleStartFocusFromPalette}
-        onCreateTask={() => setIsCreateTaskOpen(true)}
-        onCreateNote={() => setIsCreateNoteOpen(true)}
-      />
+      {isCommandPaletteOpen && (
+        <Suspense fallback={null}>
+          <CommandPalette
+            isOpen={isCommandPaletteOpen}
+            onClose={() => setIsCommandPaletteOpen(false)}
+            tasks={tasks}
+            projects={projects}
+            knowledgeNotes={knowledgeNotes}
+            githubLinksMap={githubLinksMap}
+            activeSession={activeSession}
+            onNavigate={handleSelectNav}
+            onStartFocus={handleStartFocusFromPalette}
+            onCreateTask={() => setIsCreateTaskOpen(true)}
+            onCreateNote={() => setIsCreateNoteOpen(true)}
+          />
+        </Suspense>
+      )}
 
       {/* Global Create Task Modal */}
-      <CreateTaskModal
-        isOpen={isCreateTaskOpen}
-        projects={projects}
-        onClose={() => setIsCreateTaskOpen(false)}
-        onSubmit={createTask}
-        onLinkCreated={updateTaskGitHubLinks}
-      />
+      {isCreateTaskOpen && (
+        <Suspense fallback={null}>
+          <CreateTaskModal
+            isOpen={isCreateTaskOpen}
+            projects={projects}
+            onClose={() => setIsCreateTaskOpen(false)}
+            onSubmit={createTask}
+            onLinkCreated={updateTaskGitHubLinks}
+          />
+        </Suspense>
+      )}
 
       {/* Global Create Technical Note Modal */}
-      <NoteModal
-        isOpen={isCreateNoteOpen}
-        projects={projects}
-        tasks={tasks}
-        onClose={() => setIsCreateNoteOpen(false)}
-        onSubmit={async (input) => {
-          return createKnowledgeNote(input);
-        }}
-      />
+      {isCreateNoteOpen && (
+        <Suspense fallback={null}>
+          <NoteModal
+            isOpen={isCreateNoteOpen}
+            projects={projects}
+            tasks={tasks}
+            onClose={() => setIsCreateNoteOpen(false)}
+            onSubmit={async (input) => {
+              return createKnowledgeNote(input);
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
