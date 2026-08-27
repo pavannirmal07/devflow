@@ -18,4 +18,15 @@ export default defineConfig({
   define: {
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(pkg.version),
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("@supabase")) {
+            return "supabase";
+          }
+        },
+      },
+    },
+  },
 });
